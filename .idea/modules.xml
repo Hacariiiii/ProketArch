@@ -2,13 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/API-Gateway/API-Gateway.iml" filepath="$PROJECT_DIR$/API-Gateway/API-Gateway.iml" />
-      <module fileurl="file://$PROJECT_DIR$/Eureka_Server/Eureka_Server.iml" filepath="$PROJECT_DIR$/Eureka_Server/Eureka_Server.iml" />
       <module fileurl="file://$PROJECT_DIR$/ProjetArchitecture.iml" filepath="$PROJECT_DIR$/ProjetArchitecture.iml" />
-      <module fileurl="file://$PROJECT_DIR$/User-Service/User-Service.iml" filepath="$PROJECT_DIR$/User-Service/User-Service.iml" />
-      <module fileurl="file://$PROJECT_DIR$/catalogue-service/catalogue-service.iml" filepath="$PROJECT_DIR$/catalogue-service/catalogue-service.iml" />
-      <module fileurl="file://$PROJECT_DIR$/order-service/order-service.iml" filepath="$PROJECT_DIR$/order-service/order-service.iml" />
-      <module fileurl="file://$PROJECT_DIR$/search-service/search-service.iml" filepath="$PROJECT_DIR$/search-service/search-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/react-service/react-service.iml" filepath="$PROJECT_DIR$/react-service/react-service.iml" />
     </modules>
   </component>
 </project>
