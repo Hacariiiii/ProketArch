@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 
 @RestController
 @RequestMapping("/api/auth")
@@ -187,4 +189,68 @@ public class AuthController {
         response.put("data", null);
         return response;
     }
+
+
+    @PutMapping("/profile")
+    public ResponseEntity<?> updateProfile(@RequestBody UpdateProfileRequest request) {
+        try {
+            if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(createErrorResponse("Email is required"));
+            }
+
+            // get username from JWT
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+            UserDto updatedUser = userService.updateUserProfile(username, request.getEmail());
+
+            return ResponseEntity.ok(
+                    createSuccessResponse(updatedUser, "Profile updated successfully")
+            );
+
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(createErrorResponse(ex.getMessage()));
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(createErrorResponse("Failed to update profile: " + ex.getMessage()));
+        }
+    }
+
+
+    // =====================================
+    // CHANGE PASSWORD
+    // =====================================
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest request) {
+        try {
+
+            if (request.getOldPassword() == null || request.getOldPassword().isEmpty()) {
+                return ResponseEntity.badRequest().body(createErrorResponse("Old password is required"));
+            }
+
+            if (request.getNewPassword() == null || request.getNewPassword().isEmpty()) {
+                return ResponseEntity.badRequest().body(createErrorResponse("New password is required"));
+            }
+
+            if (request.getNewPassword().length() < 6) {
+                return ResponseEntity.badRequest().body(createErrorResponse("New password must be at least 6 characters"));
+            }
+
+            // get username from JWT
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+            userService.changePassword(username, request.getOldPassword(), request.getNewPassword());
+
+            return ResponseEntity.ok(
+                    createSuccessResponse(null, "Password changed successfully")
+            );
+
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(createErrorResponse(ex.getMessage()));
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(createErrorResponse("Failed to change password: " + ex.getMessage()));
+        }
+    }
+
+
 }

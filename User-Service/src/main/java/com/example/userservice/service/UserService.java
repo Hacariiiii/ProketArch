@@ -71,10 +71,10 @@ public class UserService {
     }
 
     // ✅ Update user profile
-    public UserDto updateUserProfile(Long userId, String email) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
+    public UserDto updateUserProfile(String username, String email) {
+        User user = findByUsername(username);
 
+        // Check if email already exists (for other users)
         if (!user.getEmail().equals(email) && userRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("Email already exists: " + email);
         }
@@ -83,19 +83,25 @@ public class UserService {
         User updatedUser = userRepository.save(user);
         return convertToDto(updatedUser);
     }
-
     // ✅ Change password
-    public void changePassword(Long userId, String oldPassword, String newPassword) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
+    public void changePassword(String username, String oldPassword, String newPassword) {
+        User user = findByUsername(username);
 
+        // Verify old password
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw new IllegalArgumentException("Old password is incorrect");
         }
 
+        // Check if new password is same as old
+        if (oldPassword.equals(newPassword)) {
+            throw new IllegalArgumentException("New password must be different from old password");
+        }
+
+        // Update password
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }
+
 
     // ✅ Convert User to UserDto
     private UserDto convertToDto(User user) {

@@ -6,6 +6,7 @@ import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import PrivateRoute from './components/Auth/PrivateRoute';
 import Home from './components/Home/Home';
+import Profile from "./components/Home/Profile.jsx";
 
 export default function App() {
     return (
@@ -20,6 +21,14 @@ export default function App() {
                         element={
                             <PrivateRoute>
                                 <Home />
+                            </PrivateRoute>
+                        }
+                    />
+                    <Route
+                        path="/profile"
+                        element={
+                            <PrivateRoute>
+                                <Profile />
                             </PrivateRoute>
                         }
                     />

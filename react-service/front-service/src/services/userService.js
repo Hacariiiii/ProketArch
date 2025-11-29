@@ -5,14 +5,25 @@ export const getUserInfo = () => {
 };
 
 export const updateUserProfile = (email) => {
-    return api.put('/api/users/profile', {
-        email
-    });
+    const token = localStorage.getItem('jwt');
+    return api.put('/api/auth/profile',
+        { email },
+        {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        }
+    );
 };
 
 export const changePassword = (oldPassword, newPassword) => {
-    return api.post('/api/users/change-password', {
-        oldPassword,
-        newPassword
-    });
+    const token = localStorage.getItem('jwt');
+    return api.post('/api/auth/change-password',
+        { oldPassword, newPassword },
+        {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        }
+    );
 };
