@@ -25,43 +25,40 @@ public class SecurityConfig {
         this.userDetailsService = userDetailsService;
     }
 
-    // ✅ Password Encoder (BCrypt)
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // ✅ Authentication Manager
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
-    // ✅ JWT Filter
     @Bean
     public JwtAuthFilter jwtAuthFilter() {
         return new JwtAuthFilter(jwtUtil, userDetailsService);
     }
 
-    // ✅ Security Filter Chain (FIXED - NEW API for Spring Security 6.2+)
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable())
-                .exceptionHandling(exceptionHandling -> exceptionHandling
-                        .authenticationEntryPoint((request, response, authException) -> {
-                            response.sendError(401, "Unauthorized");
-                        })
-                )
-                .sessionManagement(sessionManagement -> sessionManagement
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/refresh","/api/auth/change-password","/api/auth/profile").permitAll()
-                        .requestMatchers("/api/auth/**").authenticated()
-                        .anyRequest().authenticated()
-                )
-                .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class);
+
+        http.csrf(csrf -> csrf.disable());
+
+        http.sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        );
+
+        http.authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/auth/login",
+                        "/api/auth/register",
+                        "/api/auth/refresh")
+                .permitAll()
+
+                .anyRequest().authenticated()
+        );
+
+        http.addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

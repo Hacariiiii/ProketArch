@@ -75,6 +75,18 @@ export default function Home() {
                         >
                             ✏️ Edit Profile
                         </button>
+
+                        <button
+                            style={{
+                                ...styles.editProfileBtn,
+                                marginTop: "20px",
+                                backgroundColor: "noir",
+                            }}
+                            onClick={() => navigate('/Shop')}
+                        >
+                            Get Started Now
+                        </button>
+
                     </div>
 
                     <div style={styles.sidebarMenu}>

@@ -7,6 +7,8 @@ import Register from './components/Auth/Register';
 import PrivateRoute from './components/Auth/PrivateRoute';
 import Home from './components/Home/Home';
 import Profile from "./components/Home/Profile.jsx";
+import ShoppingCart from "./components/Home/shop.jsx";
+import Shop from "./components/Home/shop.jsx";
 
 export default function App() {
     return (
@@ -32,6 +34,11 @@ export default function App() {
                             </PrivateRoute>
                         }
                     />
+
+
+                    <Route path="/shop" element={<PrivateRoute><Shop /></PrivateRoute>} />
+
+
                     <Route path="/" element={<Navigate to="/home" />} />
                 </Routes>
             </AuthProvider>
