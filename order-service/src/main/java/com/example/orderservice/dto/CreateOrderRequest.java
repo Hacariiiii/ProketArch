@@ -1,38 +1,30 @@
 package com.example.orderservice.dto;
 
+import lombok.*;
 import java.util.List;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class CreateOrderRequest {
     private String shippingAddress;
+
+    // ✅ Ajoute ces champs pour le catalogue
+    private String userName;
+    private String userEmail;
+
     private List<CartItem> items;
 
-    public String getShippingAddress() { return shippingAddress; }
-    public void setShippingAddress(String shippingAddress) { this.shippingAddress = shippingAddress; }
-
-    public List<CartItem> getItems() { return items; }
-    public void setItems(List<CartItem> items) { this.items = items; }
-
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
     public static class CartItem {
         private Long productId;
         private String productName;
         private Integer quantity;
         private Double price;
         private String image;
-
-        public String getImage() { return image; }
-        public void setImage(String image) { this.image = image; }
-
-
-        public Long getProductId() { return productId; }
-        public void setProductId(Long productId) { this.productId = productId; }
-
-        public String getProductName() { return productName; }
-        public void setProductName(String productName) { this.productName = productName; }
-
-        public Integer getQuantity() { return quantity; }
-        public void setQuantity(Integer quantity) { this.quantity = quantity; }
-
-        public Double getPrice() { return price; }
-        public void setPrice(Double price) { this.price = price; }
     }
 }

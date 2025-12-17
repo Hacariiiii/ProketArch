@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.stream.Collectors;
 
-
 @Service
 @Transactional
 public class OrderService {
@@ -24,9 +23,15 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
 
-    public OrderService(OrderRepository orderRepository, OrderItemRepository orderItemRepository) {
+    // ✅ Inject le nouveau service
+    private final CatalogueIntegrationService catalogueIntegrationService;
+
+    public OrderService(OrderRepository orderRepository,
+                        OrderItemRepository orderItemRepository,
+                        CatalogueIntegrationService catalogueIntegrationService) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
+        this.catalogueIntegrationService = catalogueIntegrationService;
     }
 
     // ✅ Create new order
@@ -63,6 +68,18 @@ public class OrderService {
 
         Order savedOrder = orderRepository.save(order);
         logger.info("✅ Order created: {} for user: {}", savedOrder.getOrderNumber(), userId);
+
+        // 🔥🔥🔥 ENVOYER À CATALOGUE SERVICE 🔥🔥🔥
+        try {
+            catalogueIntegrationService.sendOrderToCatalogue(
+                    savedOrder,
+                    request.getUserName(),
+                    request.getUserEmail()
+            );
+        } catch (Exception e) {
+            logger.error("⚠️ Failed to sync with catalogue, but order is saved", e);
+            // L'order est déjà sauvegardé, donc on continue
+        }
 
         return convertToDto(savedOrder);
     }
@@ -130,8 +147,6 @@ public class OrderService {
                         item.getProductName(),
                         item.getQuantity(),
                         item.getPrice()
-
-
                 ))
         );
 
@@ -156,7 +171,4 @@ public class OrderService {
 
         return new CartItemDTO(item.getProductId(), item.getProductName(), item.getPrice(), item.getImage());
     }
-
-
-
 }

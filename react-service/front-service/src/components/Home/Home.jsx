@@ -1,665 +1,874 @@
 import { useState, useEffect } from 'react';
-import { getUserInfo } from '../../services/userService';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 
 export default function Home() {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const [userInfo, setUserInfo] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState('dashboard');
+    const [scrolled, setScrolled] = useState(false);
+    const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+    const [notificationCount, setNotificationCount] = useState(3);
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [notifications, setNotifications] = useState([]);
 
     useEffect(() => {
-        const fetchUserInfo = async () => {
-            try {
-                const response = await getUserInfo();
-                setUserInfo(response.data.data);
-            } catch (err) {
-                console.error('Failed to fetch user info:', err);
-            } finally {
-                setLoading(false);
-            }
+        const handleScroll = () => {
+            setScrolled(window.scrollY > 20);
         };
-
-        fetchUserInfo();
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    if (loading) {
-        return (
-            <div style={styles.loadingContainer}>
-                <div style={styles.spinner}></div>
-                <p style={styles.loadingText}>Loading your dashboard...</p>
-            </div>
-        );
-    }
+    useEffect(() => {
+        const handleMouseMove = (e) => {
+            setMousePosition({
+                x: e.clientX,
+                y: e.clientY
+            });
+        };
+        window.addEventListener('mousemove', handleMouseMove);
+        return () => window.removeEventListener('mousemove', handleMouseMove);
+    }, []);
+
+    useEffect(() => {
+        const mockNotifications = [
+            { id: 1, title: "Welcome!", message: "Welcome to YOURCAR platform", time: "Now", read: false },
+            { id: 2, title: "Special Offer", message: "Get 20% off on your first purchase", time: "2 hours ago", read: false },
+            { id: 3, title: "Update", message: "Profile successfully created", time: "1 day ago", read: true },
+        ];
+        setNotifications(mockNotifications);
+        setNotificationCount(mockNotifications.filter(n => !n.read).length);
+    }, []);
+
+    const handleMarkAsRead = (id) => {
+        setNotifications(notifications.map(notif =>
+            notif.id === id ? { ...notif, read: true } : notif
+        ));
+        setNotificationCount(prev => Math.max(0, prev - 1));
+    };
+
+    const features = [
+        {
+            icon: '🚀',
+            title: 'Performance Maximale',
+            description: 'Expérience ultra-fluide avec technologie de pointe',
+            color: '#667eea'
+        },
+        {
+            icon: '🔒',
+            title: 'Sécurité Totale',
+            description: 'Protection avancée de vos données',
+            color: '#764ba2'
+        },
+        {
+            icon: '💎',
+            title: 'Design Premium',
+            description: 'Interface élégante et intuitive',
+            color: '#f093fb'
+        }
+    ];
 
     return (
-        <div style={styles.pageContainer}>
-            {/* HEADER BANNER */}
-            <div style={styles.headerBanner}>
+        <div style={styles.container}>
+            {/* Floating Gradient Background */}
+            <div style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                pointerEvents: 'none',
+                background: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(102, 126, 234, 0.1) 0%, transparent 50%)`,
+                zIndex: 0,
+                transition: 'background 0.3s ease'
+            }} />
+
+            {/* HEADER - Identique au Profile */}
+            <header style={{
+                ...styles.header,
+                backgroundColor: scrolled ? 'rgba(255, 255, 255, 0.98)' : 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(10px)',
+                boxShadow: scrolled ? '0 1px 20px rgba(0,0,0,0.05)' : 'none',
+                borderBottom: scrolled ? '1px solid rgba(0,0,0,0.05)' : 'none'
+            }}>
                 <div style={styles.headerContent}>
-                    <div style={styles.greetingSection}>
-                        <h1 style={styles.greeting}>
-                            👋 Welcome Back, <span style={styles.userName}>{user?.username}</span>!
-                        </h1>
-                        <p style={styles.subGreeting}>
-                            Good to see you again. Here's what's happening with your account today.
-                        </p>
+                    <div style={styles.logoSection}>
+                        <h1 style={styles.logo}>YOURCAR</h1>
+                        <p style={styles.tagline}>La simplicité est la forme ultime de l'intelligence</p>
                     </div>
-                    <div style={styles.headerStats}>
-                        <div style={styles.headerStat}>
-                            <span style={styles.headerStatLabel}>Status</span>
-                            <span style={styles.headerStatValue}>🟢 Active</span>
+
+                    <nav style={styles.nav}>
+                        <button style={styles.navBtnActive}>HOME</button>
+                        <button
+                            style={styles.navBtn}
+                            onClick={() => navigate('/shop')}
+                        >
+                            PRODUCTS
+                        </button>
+                        <button
+                            style={styles.navBtn}
+                            onClick={() => navigate('/about')}
+                        >
+                            ABOUT
+                        </button>
+                        <button
+                            style={styles.navBtn}
+                            onClick={() => navigate('/location')}
+                        >
+                            LOCATION
+                        </button>
+                        <button
+                            style={styles.navBtn}
+                            onClick={() => navigate('/my-orders')}
+                        >
+                            Historique
+                        </button>
+
+                        {/* Notification Bell */}
+                        <div style={styles.notificationContainer}>
+                            <button
+                                style={styles.notificationBtn}
+                                onClick={() => setShowNotifications(!showNotifications)}
+                            >
+                                🔔
+                                {notificationCount > 0 && (
+                                    <span style={styles.notificationBadge}>{notificationCount}</span>
+                                )}
+                            </button>
+
+                            {showNotifications && (
+                                <div style={styles.notificationDropdown}>
+                                    <div style={styles.notificationHeader}>
+                                        <h4 style={styles.notificationTitle}>Notifications</h4>
+                                        <button
+                                            style={styles.clearBtn}
+                                            onClick={() => {
+                                                setNotifications(notifications.map(n => ({ ...n, read: true })));
+                                                setNotificationCount(0);
+                                            }}
+                                        >
+                                            Tout marquer comme lu
+                                        </button>
+                                    </div>
+                                    <div style={styles.notificationList}>
+                                        {notifications.map(notification => (
+                                            <div
+                                                key={notification.id}
+                                                style={{
+                                                    ...styles.notificationItem,
+                                                    ...(!notification.read && styles.unreadNotification)
+                                                }}
+                                                onClick={() => handleMarkAsRead(notification.id)}
+                                            >
+                                                <div style={styles.notificationIcon}>📢</div>
+                                                <div style={styles.notificationContent}>
+                                                    <h5 style={styles.notificationItemTitle}>{notification.title}</h5>
+                                                    <p style={styles.notificationMessage}>{notification.message}</p>
+                                                    <small style={styles.notificationTime}>{notification.time}</small>
+                                                </div>
+                                                {!notification.read && (
+                                                    <div style={styles.unreadDot}></div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
-                        <div style={styles.headerStat}>
-                            <span style={styles.headerStatLabel}>Member Since</span>
-                            <span style={styles.headerStatValue}>2025</span>
-                        </div>
+
+                        {/* Profile Button */}
+                        <button
+                            style={styles.userBtn}
+                            onClick={() => navigate('/profile')}
+                        >
+                            {user?.username?.charAt(0).toUpperCase() || 'U'}
+                        </button>
+                    </nav>
+                </div>
+            </header>
+
+            {/* HERO SECTION */}
+            <section style={styles.heroSection}>
+                <div style={styles.heroContent}>
+                    <div style={styles.heroBadge}>
+                        <div style={styles.badgeDot}></div>
+                        PREMIUM EXPERIENCE
+                    </div>
+
+                    <h2 style={styles.heroSubtitle}>Welcome to</h2>
+                    <h1 style={styles.heroTitle}>
+                        Your<span style={styles.heroTitleAccent}>Car</span>
+                    </h1>
+
+                    <p style={styles.heroDescription}>
+                        Experience automotive excellence redefined. Premium service,
+                        exceptional quality, and unparalleled attention to detail.
+                    </p>
+
+                    <div style={styles.heroActions}>
+                        <button
+                            style={styles.heroPrimaryBtn}
+                            onClick={() => navigate('/shop')}
+                            onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                            onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                        >
+                            <span style={styles.btnIcon}>🚀</span>
+                            Explore Collection
+                        </button>
+                        <button
+                            style={styles.heroSecondaryBtn}
+                            onClick={() => navigate('/my-orders')}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8f9fa'}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                        >
+                            <span style={styles.btnIcon}>📋</span>
+                            View Orders
+                        </button>
                     </div>
                 </div>
-            </div>
+            </section>
 
-            {/* MAIN CONTENT */}
-            <div style={styles.mainContainer}>
-                {/* SIDEBAR */}
-                <div style={styles.sidebar}>
-                    <div style={styles.profileBox}>
-                        <div style={styles.profileAvatar}>{user?.username?.charAt(0).toUpperCase()}</div>
-                        <h3 style={styles.profileName}>{user?.username}</h3>
-                        <p style={styles.profileEmail}>{user?.email}</p>
-                        <div style={styles.roleBadge}>👑 {userInfo?.roles?.[0] || 'USER'}</div>
-                        <button
-                            style={styles.editProfileBtn}
-                            onClick={() => navigate('/Profile')}
-                        >
-                            ✏️ Edit Profile
-                        </button>
-
-                        <button
-                            style={{
-                                ...styles.editProfileBtn,
-                                marginTop: "20px",
-                                backgroundColor: "noir",
-                            }}
-                            onClick={() => navigate('/Shop')}
-                        >
-                            Get Started Now
-                        </button>
-
+            {/* USER WELCOME SECTION */}
+            <section style={styles.userSection}>
+                <div style={styles.userCard}>
+                    <div style={styles.userAvatar}>
+                        {user?.username?.charAt(0).toUpperCase() || 'U'}
                     </div>
-
-                    <div style={styles.sidebarMenu}>
-                        <button
-                            style={{
-                                ...styles.menuItem,
-                                ...(activeTab === 'dashboard' ? styles.menuItemActive : {})
-                            }}
-                            onClick={() => setActiveTab('dashboard')}
-                        >
-                            📊 Dashboard
-                        </button>
-                        <button
-                            style={{
-                                ...styles.menuItem,
-                                ...(activeTab === 'activity' ? styles.menuItemActive : {})
-                            }}
-                            onClick={() => setActiveTab('activity')}
-                        >
-                            📈 Activity
-                        </button>
-                        <button
-                            style={{
-                                ...styles.menuItem,
-                                ...(activeTab === 'achievements' ? styles.menuItemActive : {})
-                            }}
-                            onClick={() => setActiveTab('achievements')}
-                        >
-                            🏆 Achievements
-                        </button>
-                        <button
-                            style={{
-                                ...styles.menuItem,
-                                ...(activeTab === 'settings' ? styles.menuItemActive : {})
-                            }}
-                            onClick={() => setActiveTab('settings')}
-                        >
-                            ⚙️ Settings
-                        </button>
+                    <div style={styles.userInfo}>
+                        <h3 style={styles.userGreeting}>Welcome back,</h3>
+                        <h2 style={styles.userName}>{user?.username}</h2>
+                        <p style={styles.userEmail}>{user?.email}</p>
                     </div>
                 </div>
+            </section>
 
-                {/* CONTENT AREA */}
-                <div style={styles.contentArea}>
-                    {activeTab === 'dashboard' && (
-                        <>
-                            {/* STATS GRID */}
-                            <div style={styles.section}>
-                                <h2 style={styles.sectionTitle}>📊 Your Statistics</h2>
-                                <div style={styles.statsGrid}>
-                                    <div style={styles.statCard}>
-                                        <div style={styles.statCardHeader}>
-                                            <span style={styles.statCardIcon}>⭐</span>
-                                            <span style={styles.statCardLabel}>Points</span>
-                                        </div>
-                                        <div style={styles.statCardValue}>2,450</div>
-                                        <div style={styles.statCardChange}>+120 this month</div>
-                                    </div>
-
-                                    <div style={styles.statCard}>
-                                        <div style={styles.statCardHeader}>
-                                            <span style={styles.statCardIcon}>🏆</span>
-                                            <span style={styles.statCardLabel}>Achievements</span>
-                                        </div>
-                                        <div style={styles.statCardValue}>12</div>
-                                        <div style={styles.statCardChange}>Unlocked</div>
-                                    </div>
-
-                                    <div style={styles.statCard}>
-                                        <div style={styles.statCardHeader}>
-                                            <span style={styles.statCardIcon}>🔥</span>
-                                            <span style={styles.statCardLabel}>Streak</span>
-                                        </div>
-                                        <div style={styles.statCardValue}>7</div>
-                                        <div style={styles.statCardChange}>Days active</div>
-                                    </div>
-
-                                    <div style={styles.statCard}>
-                                        <div style={styles.statCardHeader}>
-                                            <span style={styles.statCardIcon}>👥</span>
-                                            <span style={styles.statCardLabel}>Followers</span>
-                                        </div>
-                                        <div style={styles.statCardValue}>243</div>
-                                        <div style={styles.statCardChange}>+18 new</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* PROFILE INFO CARD */}
-                            <div style={styles.section}>
-                                <h2 style={styles.sectionTitle}>👤 Account Information</h2>
-                                <div style={styles.infoCard}>
-                                    <div style={styles.infoRow}>
-                                        <span style={styles.infoLabel}>📍 User ID</span>
-                                        <span style={styles.infoValue}>{userInfo?.id}</span>
-                                    </div>
-                                    <div style={styles.divider}></div>
-                                    <div style={styles.infoRow}>
-                                        <span style={styles.infoLabel}>👤 Username</span>
-                                        <span style={styles.infoValue}>{userInfo?.username}</span>
-                                    </div>
-                                    <div style={styles.divider}></div>
-                                    <div style={styles.infoRow}>
-                                        <span style={styles.infoLabel}>✉️ Email</span>
-                                        <span style={styles.infoValue}>{userInfo?.email}</span>
-                                    </div>
-                                    <div style={styles.divider}></div>
-                                    <div style={styles.infoRow}>
-                                        <span style={styles.infoLabel}>🔐 Role</span>
-                                        <span style={styles.infoValueRole}>{userInfo?.roles?.join(', ')}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* QUICK ACTIONS */}
-                            <div style={styles.section}>
-                                <h2 style={styles.sectionTitle}>⚡ Quick Actions</h2>
-                                <div style={styles.actionGrid}>
-                                    <button style={styles.actionButton}>
-                                        <span style={styles.actionIcon}>📝</span>
-                                        <span style={styles.actionText}>Create Post</span>
-                                    </button>
-                                    <button style={styles.actionButton}>
-                                        <span style={styles.actionIcon}>🔔</span>
-                                        <span style={styles.actionText}>View Notifications</span>
-                                    </button>
-                                    <button style={styles.actionButton}>
-                                        <span style={styles.actionIcon}>💬</span>
-                                        <span style={styles.actionText}>Messages</span>
-                                    </button>
-                                    <button style={styles.actionButton}>
-                                        <span style={styles.actionIcon}>📊</span>
-                                        <span style={styles.actionText}>Analytics</span>
-                                    </button>
-                                    <button style={styles.actionButton}>
-                                        <span style={styles.actionIcon}>🎯</span>
-                                        <span style={styles.actionText}>Goals</span>
-                                    </button>
-                                    <button style={styles.actionButton}>
-                                        <span style={styles.actionIcon}>🎁</span>
-                                        <span style={styles.actionText}>Rewards</span>
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* RECENT ACTIVITY */}
-                            <div style={styles.section}>
-                                <h2 style={styles.sectionTitle}>📜 Recent Activity</h2>
-                                <div style={styles.activityList}>
-                                    <div style={styles.activityItem}>
-                                        <div style={styles.activityIcon}>✅</div>
-                                        <div style={styles.activityContent}>
-                                            <p style={styles.activityTitle}>Profile Completed</p>
-                                            <p style={styles.activityTime}>2 hours ago</p>
-                                        </div>
-                                    </div>
-                                    <div style={styles.activityItem}>
-                                        <div style={styles.activityIcon}>🏆</div>
-                                        <div style={styles.activityContent}>
-                                            <p style={styles.activityTitle}>New Achievement Unlocked</p>
-                                            <p style={styles.activityTime}>Yesterday</p>
-                                        </div>
-                                    </div>
-                                    <div style={styles.activityItem}>
-                                        <div style={styles.activityIcon}>👥</div>
-                                        <div style={styles.activityContent}>
-                                            <p style={styles.activityTitle}>New Follower</p>
-                                            <p style={styles.activityTime}>3 days ago</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </>
-                    )}
-
-                    {activeTab === 'activity' && (
-                        <div style={styles.section}>
-                            <h2 style={styles.sectionTitle}>📈 Your Activity</h2>
-                            <div style={styles.emptyState}>
-                                <p>📊 Activity tracking coming soon!</p>
-                            </div>
-                        </div>
-                    )}
-
-                    {activeTab === 'achievements' && (
-                        <div style={styles.section}>
-                            <h2 style={styles.sectionTitle}>🏆 Achievements</h2>
-                            <div style={styles.achievementGrid}>
-                                <div style={styles.achievementCard}>
-                                    <span style={styles.achievementIcon}>🌟</span>
-                                    <span style={styles.achievementName}>First Step</span>
-                                </div>
-                                <div style={styles.achievementCard}>
-                                    <span style={styles.achievementIcon}>⭐</span>
-                                    <span style={styles.achievementName}>Rising Star</span>
-                                </div>
-                                <div style={styles.achievementCard}>
-                                    <span style={styles.achievementIcon}>👑</span>
-                                    <span style={styles.achievementName}>Champion</span>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {activeTab === 'settings' && (
-                        <div style={styles.section}>
-                            <h2 style={styles.sectionTitle}>⚙️ Settings</h2>
-                            <div style={styles.settingsList}>
-                                <div style={styles.settingItem}>
-                                    <span>🔔 Notifications</span>
-                                    <input type="checkbox" defaultChecked />
-                                </div>
-                                <div style={styles.settingItem}>
-                                    <span>🌙 Dark Mode</span>
-                                    <input type="checkbox" />
-                                </div>
-                                <div style={styles.settingItem}>
-                                    <span>🔒 Privacy</span>
-                                    <input type="checkbox" defaultChecked />
-                                </div>
-                            </div>
-                        </div>
-                    )}
+            {/* FEATURES SECTION */}
+            <section style={styles.featuresSection}>
+                <div style={styles.sectionHeader}>
+                    <h2 style={styles.sectionTitle}>Why Choose Us?</h2>
+                    <p style={styles.sectionSubtitle}>
+                        Premium features for an exceptional experience
+                    </p>
                 </div>
-            </div>
 
-            {/* SPACING FOR BOTTOM BAR */}
-            <div style={{ height: '100px' }}></div>
+                <div style={styles.featuresGrid}>
+                    {features.map((feature, index) => (
+                        <div
+                            key={index}
+                            style={styles.featureCard}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'translateY(-8px)';
+                                e.currentTarget.style.boxShadow = '0 20px 40px rgba(0,0,0,0.1)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = '0 10px 30px rgba(0,0,0,0.08)';
+                            }}
+                        >
+                            <div style={{
+                                ...styles.featureIcon,
+                                backgroundColor: `${feature.color}15`
+                            }}>
+                                <span style={{ fontSize: '32px' }}>{feature.icon}</span>
+                            </div>
+                            <h3 style={styles.featureTitle}>{feature.title}</h3>
+                            <p style={styles.featureDescription}>{feature.description}</p>
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            {/* QUICK ACTIONS SECTION */}
+            <section style={styles.actionsSection}>
+                <div style={styles.actionsGrid}>
+                    <button
+                        style={styles.actionBtn}
+                        onClick={() => navigate('/shop')}
+                        onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                        onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                    >
+                        🛍️ Shop Now
+                    </button>
+                    <button
+                        style={styles.actionBtn}
+                        onClick={() => navigate('/my-orders')}
+                        onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                        onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                    >
+                        📋 View Orders
+                    </button>
+                    <button
+                        style={styles.actionBtn}
+                        onClick={() => navigate('/profile')}
+                        onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                        onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                    >
+                        ⚙️ Settings
+                    </button>
+                </div>
+            </section>
+
+            {/* FOOTER - Identique au Profile */}
+            <footer style={styles.footer}>
+                <div style={styles.footerContent}>
+                    <div style={styles.footerLogo}>
+                        <h3 style={styles.footerLogoText}>YOURCAR</h3>
+                        <p style={styles.footerTagline}>Redefining automotive excellence</p>
+                    </div>
+
+                    <div style={styles.footerLinks}>
+                        <button
+                            style={styles.footerLink}
+                            onClick={() => navigate('/home')}
+                        >
+                            Home
+                        </button>
+                        <button
+                            style={styles.footerLink}
+                            onClick={() => navigate('/shop')}
+                        >
+                            Shop
+                        </button>
+                        <button
+                            style={styles.footerLink}
+                            onClick={() => navigate('/profile')}
+                        >
+                            Profile
+                        </button>
+                        <button
+                            style={styles.footerLink}
+                            onClick={() => navigate('/my-orders')}
+                        >
+                            Orders
+                        </button>
+                    </div>
+
+                    <div style={styles.footerCopyright}>
+                        <p>© 2025 YOURCAR. All rights reserved.</p>
+                    </div>
+                </div>
+            </footer>
+
+            {/* CSS Animations */}
+            <style>{`
+                @keyframes fadeInUp {
+                    from {
+                        opacity: 0;
+                        transform: translateY(20px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+                
+                @keyframes pulse {
+                    0%, 100% { opacity: 1; }
+                    50% { opacity: 0.7; }
+                }
+
+                .notification-dropdown-enter {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+                
+                .notification-dropdown-enter-active {
+                    opacity: 1;
+                    transform: translateY(0);
+                    transition: opacity 200ms, transform 200ms;
+                }
+                
+                .notification-dropdown-exit {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+                
+                .notification-dropdown-exit-active {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                    transition: opacity 200ms, transform 200ms;
+                }
+            `}</style>
         </div>
     );
 }
 
 const styles = {
-    pageContainer: {
-        backgroundColor: '#f0f2f5',
+    container: {
         minHeight: '100vh',
-        paddingTop: '0',
+        backgroundColor: '#FFFFFF',
+        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        position: 'relative',
+        overflow: 'hidden'
     },
-    loadingContainer: {
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        gap: '20px',
-    },
-    spinner: {
-        width: '50px',
-        height: '50px',
-        border: '4px solid #e0e0e0',
-        borderTop: '4px solid #3498db',
-        borderRadius: '50%',
-        animation: 'spin 1s linear infinite',
-    },
-    loadingText: {
-        fontSize: '16px',
-        color: '#666',
-    },
-    headerBanner: {
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        color: 'white',
-        padding: '40px 20px',
-        marginBottom: '30px',
+
+    // Header - Identique au Profile
+    header: {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        padding: '20px 40px',
+        zIndex: 1000,
+        transition: 'all 0.3s ease'
     },
     headerContent: {
         maxWidth: '1200px',
         margin: '0 auto',
         display: 'flex',
         justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        gap: '30px',
+        alignItems: 'center'
     },
-    greetingSection: {
-        flex: 1,
-    },
-    greeting: {
-        fontSize: '32px',
-        fontWeight: 'bold',
-        margin: '0 0 10px 0',
-    },
-    userName: {
-        color: '#ffd700',
-    },
-    subGreeting: {
-        fontSize: '16px',
-        opacity: 0.9,
-        margin: 0,
-    },
-    headerStats: {
+    logoSection: {
         display: 'flex',
-        gap: '30px',
+        flexDirection: 'column'
     },
-    headerStat: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '5px',
+    logo: {
+        fontSize: '28px',
+        fontWeight: '800',
+        color: '#333333',
+        margin: '0 0 5px 0',
+        letterSpacing: '2px'
     },
-    headerStatLabel: {
+    tagline: {
         fontSize: '12px',
-        opacity: 0.8,
+        color: '#666666',
+        letterSpacing: '1px',
+        margin: 0
     },
-    headerStatValue: {
+    nav: {
+        display: 'flex',
+        gap: '25px',
+        alignItems: 'center',
+        position: 'relative'
+    },
+    navBtn: {
+        background: 'none',
+        border: 'none',
+        fontSize: '14px',
+        fontWeight: '500',
+        color: '#666666',
+        cursor: 'pointer',
+        padding: '8px 0',
+        transition: 'color 0.3s'
+    },
+    navBtnActive: {
+        background: 'none',
+        border: 'none',
+        fontSize: '14px',
+        fontWeight: '600',
+        color: '#333333',
+        cursor: 'pointer',
+        padding: '8px 0'
+    },
+    notificationContainer: {
+        position: 'relative'
+    },
+    notificationBtn: {
+        background: 'none',
+        border: 'none',
+        fontSize: '20px',
+        cursor: 'pointer',
+        position: 'relative',
+        padding: '8px'
+    },
+    notificationBadge: {
+        position: 'absolute',
+        top: '-5px',
+        right: '-5px',
+        backgroundColor: '#FF4757',
+        color: 'white',
+        borderRadius: '50%',
+        width: '18px',
+        height: '18px',
+        fontSize: '10px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontWeight: 'bold'
+    },
+    notificationDropdown: {
+        position: 'absolute',
+        top: '100%',
+        right: 0,
+        backgroundColor: 'white',
+        boxShadow: '0 5px 20px rgba(0,0,0,0.1)',
+        borderRadius: '10px',
+        width: '350px',
+        zIndex: 1000,
+        marginTop: '10px'
+    },
+    notificationHeader: {
+        padding: '15px',
+        borderBottom: '1px solid #eee',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+    },
+    notificationTitle: {
+        margin: 0,
+        fontSize: '16px',
+        fontWeight: '600'
+    },
+    clearBtn: {
+        background: 'none',
+        border: 'none',
+        color: '#667eea',
+        fontSize: '12px',
+        cursor: 'pointer'
+    },
+    notificationList: {
+        maxHeight: '300px',
+        overflowY: 'auto'
+    },
+    notificationItem: {
+        padding: '15px',
+        borderBottom: '1px solid #eee',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'flex-start',
+        transition: 'background 0.3s',
+        position: 'relative'
+    },
+    unreadNotification: {
+        backgroundColor: '#f8f9ff'
+    },
+    notificationIcon: {
+        fontSize: '18px',
+        marginRight: '10px',
+        marginTop: '2px'
+    },
+    notificationContent: {
+        flex: 1
+    },
+    notificationItemTitle: {
+        margin: '0 0 5px 0',
+        fontSize: '14px',
+        fontWeight: '600'
+    },
+    notificationMessage: {
+        margin: '0 0 5px 0',
+        fontSize: '13px',
+        color: '#666'
+    },
+    notificationTime: {
+        fontSize: '11px',
+        color: '#999'
+    },
+    unreadDot: {
+        width: '8px',
+        height: '8px',
+        backgroundColor: '#667eea',
+        borderRadius: '50%',
+        marginLeft: '10px'
+    },
+    userBtn: {
+        width: '40px',
+        height: '40px',
+        borderRadius: '50%',
+        backgroundColor: '#333333',
+        color: 'white',
+        border: 'none',
         fontSize: '18px',
         fontWeight: 'bold',
-    },
-    mainContainer: {
-        maxWidth: '1200px',
-        margin: '0 auto',
-        display: 'grid',
-        gridTemplateColumns: '280px 1fr',
-        gap: '30px',
-        padding: '0 20px 50px 20px',
-    },
-    sidebar: {
+        cursor: 'pointer',
         display: 'flex',
-        flexDirection: 'column',
-        gap: '20px',
+        alignItems: 'center',
+        justifyContent: 'center'
     },
-    profileBox: {
-        backgroundColor: 'white',
-        borderRadius: '12px',
-        padding: '20px',
+
+    // Hero Section
+    heroSection: {
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '120px 40px 80px 40px',
+        position: 'relative'
+    },
+    heroContent: {
         textAlign: 'center',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        maxWidth: '800px',
+        position: 'relative',
+        zIndex: 2
     },
-    profileAvatar: {
-        width: '80px',
-        height: '80px',
+    heroBadge: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '8px',
+        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+        color: '#667eea',
+        padding: '8px 16px',
+        borderRadius: '50px',
+        fontSize: '12px',
+        fontWeight: '600',
+        marginBottom: '30px',
+        letterSpacing: '0.5px'
+    },
+    badgeDot: {
+        width: '6px',
+        height: '6px',
         borderRadius: '50%',
+        backgroundColor: '#4ade80',
+        animation: 'pulse 2s infinite'
+    },
+    heroSubtitle: {
+        fontSize: '16px',
+        fontWeight: '500',
+        color: '#667eea',
+        letterSpacing: '2px',
+        margin: '0 0 16px 0',
+        textTransform: 'uppercase'
+    },
+    heroTitle: {
+        fontSize: '64px',
+        fontWeight: '800',
+        margin: '0 0 24px 0',
+        letterSpacing: '-2px',
+        color: '#1a1a1a',
+        lineHeight: 1.1
+    },
+    heroTitleAccent: {
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text'
+    },
+    heroDescription: {
+        fontSize: '18px',
+        color: '#666',
+        lineHeight: 1.6,
+        margin: '0 auto 48px auto',
+        maxWidth: '600px',
+        fontWeight: '400'
+    },
+    heroActions: {
+        display: 'flex',
+        gap: '16px',
+        justifyContent: 'center',
+        flexWrap: 'wrap'
+    },
+    btnIcon: {
+        marginRight: '8px',
+        fontSize: '18px'
+    },
+    heroPrimaryBtn: {
         backgroundColor: '#667eea',
+        color: 'white',
+        border: 'none',
+        padding: '16px 32px',
+        fontSize: '16px',
+        fontWeight: '600',
+        borderRadius: '12px',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+        display: 'flex',
+        alignItems: 'center',
+        boxShadow: '0 10px 30px rgba(102, 126, 234, 0.3)'
+    },
+    heroSecondaryBtn: {
+        backgroundColor: 'transparent',
+        color: '#667eea',
+        border: '2px solid #667eea',
+        padding: '16px 32px',
+        fontSize: '16px',
+        fontWeight: '600',
+        borderRadius: '12px',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+        display: 'flex',
+        alignItems: 'center'
+    },
+
+    // User Section
+    userSection: {
+        padding: '40px 40px',
+        backgroundColor: '#f8f9fa'
+    },
+    userCard: {
+        maxWidth: '400px',
+        margin: '0 auto',
+        backgroundColor: 'white',
+        borderRadius: '20px',
+        padding: '32px',
+        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.05)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '24px',
+        animation: 'fadeInUp 0.6s ease'
+    },
+    userAvatar: {
+        width: '60px',
+        height: '60px',
+        borderRadius: '50%',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         color: 'white',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontSize: '32px',
-        fontWeight: 'bold',
-        margin: '0 auto 15px',
+        fontSize: '24px',
+        fontWeight: '700',
+        flexShrink: 0
     },
-    profileName: {
-        fontSize: '18px',
-        fontWeight: 'bold',
-        color: '#2c3e50',
-        margin: '0 0 5px 0',
+    userInfo: {
+        flex: 1
     },
-    profileEmail: {
-        fontSize: '13px',
-        color: '#7f8c8d',
-        margin: '0 0 15px 0',
-    },
-    roleBadge: {
-        display: 'inline-block',
-        backgroundColor: '#2ecc71',
-        color: 'white',
-        padding: '6px 12px',
-        borderRadius: '20px',
-        fontSize: '12px',
-        fontWeight: 'bold',
-        marginBottom: '15px',
-    },
-    editProfileBtn: {
-        width: '100%',
-        padding: '10px',
-        backgroundColor: '#3498db',
-        color: 'white',
-        border: 'none',
-        borderRadius: '6px',
-        cursor: 'pointer',
+    userGreeting: {
         fontSize: '14px',
-        fontWeight: 'bold',
-        transition: 'background-color 0.3s',
+        color: '#666',
+        fontWeight: '500',
+        margin: '0 0 4px 0',
+        textTransform: 'uppercase',
+        letterSpacing: '1px'
     },
-    sidebarMenu: {
-        backgroundColor: 'white',
-        borderRadius: '12px',
-        overflow: 'hidden',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+    userName: {
+        fontSize: '24px',
+        fontWeight: '700',
+        color: '#1a1a1a',
+        margin: '0 0 4px 0'
     },
-    menuItem: {
-        width: '100%',
-        padding: '15px',
-        border: 'none',
-        backgroundColor: 'white',
-        color: '#2c3e50',
-        cursor: 'pointer',
+    userEmail: {
         fontSize: '14px',
-        textAlign: 'left',
-        transition: 'all 0.3s',
-        borderLeft: '4px solid transparent',
+        color: '#888',
+        margin: 0
     },
-    menuItemActive: {
-        backgroundColor: '#f0f2f5',
-        color: '#667eea',
-        borderLeftColor: '#667eea',
-        fontWeight: 'bold',
+
+    // Features Section
+    featuresSection: {
+        padding: '80px 40px',
+        backgroundColor: 'white'
     },
-    contentArea: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '20px',
-    },
-    section: {
-        backgroundColor: 'white',
-        borderRadius: '12px',
-        padding: '25px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+    sectionHeader: {
+        textAlign: 'center',
+        marginBottom: '60px'
     },
     sectionTitle: {
-        fontSize: '20px',
-        fontWeight: 'bold',
-        color: '#2c3e50',
-        margin: '0 0 20px 0',
+        fontSize: '36px',
+        fontWeight: '800',
+        color: '#1a1a1a',
+        marginBottom: '16px'
     },
-    statsGrid: {
+    sectionSubtitle: {
+        fontSize: '18px',
+        color: '#666',
+        lineHeight: 1.6,
+        maxWidth: '600px',
+        margin: '0 auto'
+    },
+    featuresGrid: {
+        maxWidth: '900px',
+        margin: '0 auto',
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        gap: '15px',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+        gap: '24px'
     },
-    statCard: {
+    featureCard: {
         backgroundColor: '#f8f9fa',
-        borderRadius: '8px',
-        padding: '15px',
-        border: '2px solid #e0e0e0',
+        borderRadius: '16px',
+        padding: '32px',
+        textAlign: 'center',
+        transition: 'all 0.3s ease',
+        animation: 'fadeInUp 0.6s ease'
     },
-    statCardHeader: {
+    featureIcon: {
+        width: '60px',
+        height: '60px',
+        borderRadius: '16px',
         display: 'flex',
         alignItems: 'center',
-        gap: '10px',
-        marginBottom: '10px',
+        justifyContent: 'center',
+        margin: '0 auto 20px auto',
+        transition: 'transform 0.3s ease'
     },
-    statCardIcon: {
-        fontSize: '24px',
+    featureTitle: {
+        fontSize: '18px',
+        fontWeight: '700',
+        color: '#1a1a1a',
+        margin: '0 0 12px 0'
     },
-    statCardLabel: {
-        fontSize: '13px',
-        color: '#7f8c8d',
-        fontWeight: 'bold',
-    },
-    statCardValue: {
-        fontSize: '28px',
-        fontWeight: 'bold',
-        color: '#667eea',
-        marginBottom: '5px',
-    },
-    statCardChange: {
-        fontSize: '12px',
-        color: '#2ecc71',
-    },
-    infoCard: {
-        backgroundColor: '#f8f9fa',
-        borderRadius: '8px',
-        padding: '20px',
-    },
-    infoRow: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '12px 0',
-    },
-    infoLabel: {
+    featureDescription: {
         fontSize: '14px',
-        color: '#7f8c8d',
-        fontWeight: 'bold',
+        color: '#666',
+        lineHeight: 1.6,
+        margin: 0
     },
-    infoValue: {
-        fontSize: '14px',
-        color: '#2c3e50',
-        fontWeight: 'bold',
+
+    // Actions Section
+    actionsSection: {
+        padding: '60px 40px',
+        backgroundColor: '#f8f9fa'
     },
-    infoValueRole: {
-        fontSize: '14px',
-        color: '#2ecc71',
-        fontWeight: 'bold',
-    },
-    divider: {
-        height: '1px',
-        backgroundColor: '#e0e0e0',
-    },
-    actionGrid: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-        gap: '15px',
-    },
-    actionButton: {
+    actionsGrid: {
+        maxWidth: '400px',
+        margin: '0 auto',
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center',
-        gap: '10px',
-        padding: '15px',
-        backgroundColor: '#f8f9fa',
-        border: '2px solid #e0e0e0',
-        borderRadius: '8px',
+        gap: '16px'
+    },
+    actionBtn: {
+        backgroundColor: 'white',
+        border: 'none',
+        padding: '16px 24px',
+        fontSize: '16px',
+        fontWeight: '600',
+        borderRadius: '12px',
         cursor: 'pointer',
-        transition: 'all 0.3s',
-        fontSize: '13px',
-        fontWeight: 'bold',
-        color: '#2c3e50',
+        transition: 'all 0.2s ease',
+        textAlign: 'left',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        boxShadow: '0 5px 20px rgba(0,0,0,0.05)'
     },
-    actionIcon: {
-        fontSize: '28px',
+
+    // Footer - Identique au Profile
+    footer: {
+        backgroundColor: '#1a1a1a',
+        color: 'white',
+        padding: '60px 40px 40px 40px'
     },
-    actionText: {
-        textAlign: 'center',
-    },
-    activityList: {
+    footerContent: {
+        maxWidth: '1200px',
+        margin: '0 auto',
         display: 'flex',
         flexDirection: 'column',
-        gap: '15px',
+        alignItems: 'center',
+        gap: '32px'
     },
-    activityItem: {
-        display: 'flex',
-        gap: '15px',
-        padding: '15px',
-        backgroundColor: '#f8f9fa',
-        borderRadius: '8px',
-        borderLeft: '4px solid #667eea',
+    footerLogo: {
+        textAlign: 'center'
     },
-    activityIcon: {
-        fontSize: '24px',
-        minWidth: '24px',
+    footerLogoText: {
+        fontSize: '20px',
+        fontWeight: '800',
+        margin: '0 0 8px 0',
+        color: 'white'
     },
-    activityContent: {
-        flex: 1,
-    },
-    activityTitle: {
+    footerTagline: {
         fontSize: '14px',
-        fontWeight: 'bold',
-        color: '#2c3e50',
-        margin: '0 0 5px 0',
+        color: '#888',
+        fontWeight: '400',
+        letterSpacing: '0.5px'
     },
-    activityTime: {
-        fontSize: '12px',
-        color: '#7f8c8d',
-        margin: 0,
+    footerLinks: {
+        display: 'flex',
+        gap: '24px'
     },
-    emptyState: {
+    footerLink: {
+        background: 'none',
+        border: 'none',
+        color: '#ccc',
+        fontSize: '14px',
+        fontWeight: '500',
+        cursor: 'pointer',
+        padding: '8px 16px',
+        borderRadius: '6px',
+        transition: 'all 0.2s ease'
+    },
+    footerCopyright: {
         textAlign: 'center',
-        padding: '40px 20px',
-        color: '#7f8c8d',
-    },
-    achievementGrid: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-        gap: '15px',
-    },
-    achievementCard: {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: '10px',
-        padding: '20px',
-        backgroundColor: '#f8f9fa',
-        borderRadius: '8px',
-        textAlign: 'center',
-    },
-    achievementIcon: {
-        fontSize: '32px',
-    },
-    achievementName: {
-        fontSize: '13px',
-        fontWeight: 'bold',
-        color: '#2c3e50',
-    },
-    settingsList: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '15px',
-    },
-    settingItem: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '15px',
-        backgroundColor: '#f8f9fa',
-        borderRadius: '8px',
-    },
+        paddingTop: '32px',
+        borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+        width: '100%'
+    }
 };

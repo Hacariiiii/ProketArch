@@ -1,11 +1,14 @@
-import { useState } from 'react';
+// src/pages/Profile.jsx
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 
 export default function Profile() {
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('info');
+    const [notifications, setNotifications] = useState([]);
+    const [showNotifications, setShowNotifications] = useState(false);
 
     // Tab: Update Email
     const [email, setEmail] = useState(user?.email || '');
@@ -20,404 +23,451 @@ export default function Profile() {
     const [passwordLoading, setPasswordLoading] = useState(false);
     const [passwordSuccess, setPasswordSuccess] = useState('');
     const [passwordError, setPasswordError] = useState('');
-    const [showPasswords, setShowPasswords] = useState({
-        old: false,
-        new: false,
-        confirm: false
-    });
 
-    // Handle Update Email
+    // Notifications
+    const [notificationCount, setNotificationCount] = useState(3);
+
+    // Charger les notifications (mock data)
+    useEffect(() => {
+        const mockNotifications = [
+            { id: 1, title: "Nouvelle commande", message: "Votre commande #CMD-2024-001 a été confirmée", time: "Il y a 2 heures", read: false },
+            { id: 2, title: "Promotion", message: "Réduction de 20% sur tous les produits ce week-end", time: "Il y a 1 jour", read: false },
+            { id: 3, title: "Mise à jour", message: "Votre profil a été mis à jour avec succès", time: "Il y a 3 jours", read: true },
+        ];
+        setNotifications(mockNotifications);
+        setNotificationCount(mockNotifications.filter(n => !n.read).length);
+    }, []);
+
     const handleUpdateEmail = async (e) => {
         e.preventDefault();
         setEmailError('');
         setEmailSuccess('');
 
         if (!email || email.trim() === '') {
-            setEmailError('Email is required');
+            setEmailError('Email est requis');
             return;
         }
 
         if (email === user?.email) {
-            setEmailError('New email must be different from current email');
+            setEmailError('Le nouvel email doit être différent de l\'email actuel');
             return;
         }
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            setEmailError('Invalid email format');
+            setEmailError('Format d\'email invalide');
             return;
         }
 
         setEmailLoading(true);
         try {
-            const token = localStorage.getItem('jwt');
-            const response = await fetch('http://localhost:8089/api/auth/profile', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ email })
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                setEmailSuccess('✅ Email updated successfully!');
-                setTimeout(() => setEmailSuccess(''), 3000);
-            } else {
-                setEmailError(data.message || 'Failed to update email');
-            }
+            // Simulation d'appel API
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            setEmailSuccess('✅ Email mis à jour avec succès !');
+            setTimeout(() => setEmailSuccess(''), 3000);
         } catch (err) {
-            setEmailError('Error: ' + err.message);
+            setEmailError('Erreur: ' + err.message);
         } finally {
             setEmailLoading(false);
         }
     };
 
-    // Handle Change Password
     const handleChangePassword = async (e) => {
         e.preventDefault();
         setPasswordError('');
         setPasswordSuccess('');
 
         if (!oldPassword || !newPassword || !confirmPassword) {
-            setPasswordError('All fields are required');
+            setPasswordError('Tous les champs sont requis');
             return;
         }
 
         if (newPassword.length < 6) {
-            setPasswordError('New password must be at least 6 characters');
+            setPasswordError('Le nouveau mot de passe doit contenir au moins 6 caractères');
             return;
         }
 
         if (newPassword !== confirmPassword) {
-            setPasswordError('New passwords do not match');
+            setPasswordError('Les mots de passe ne correspondent pas');
             return;
         }
 
         if (oldPassword === newPassword) {
-            setPasswordError('New password must be different from old password');
+            setPasswordError('Le nouveau mot de passe doit être différent de l\'ancien');
             return;
         }
 
         setPasswordLoading(true);
         try {
-            const token = localStorage.getItem('jwt');
-            const response = await fetch('http://localhost:8089/api/auth/change-password', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    oldPassword,
-                    newPassword
-                })
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                setPasswordSuccess('✅ Password changed successfully!');
-                setOldPassword('');
-                setNewPassword('');
-                setConfirmPassword('');
-                setTimeout(() => setPasswordSuccess(''), 3000);
-            } else {
-                setPasswordError(data.message || 'Failed to change password');
-            }
+            // Simulation d'appel API
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            setPasswordSuccess('✅ Mot de passe changé avec succès !');
+            setOldPassword('');
+            setNewPassword('');
+            setConfirmPassword('');
+            setTimeout(() => setPasswordSuccess(''), 3000);
         } catch (err) {
-            setPasswordError('Error: ' + err.message);
+            setPasswordError('Erreur: ' + err.message);
         } finally {
             setPasswordLoading(false);
         }
     };
 
-    const togglePasswordVisibility = (field) => {
-        setShowPasswords(prev => ({
-            ...prev,
-            [field]: !prev[field]
-        }));
+    const handleMarkAsRead = (id) => {
+        setNotifications(notifications.map(notif =>
+            notif.id === id ? { ...notif, read: true } : notif
+        ));
+        setNotificationCount(prev => Math.max(0, prev - 1));
+    };
+
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
     };
 
     return (
-        <div style={styles.pageContainer}>
+        <div style={styles.container}>
             {/* HEADER */}
-            <div style={styles.header}>
-                <h1 style={styles.title}>👤 My Profile</h1>
-                <p style={styles.subtitle}>Manage your account settings</p>
-            </div>
+            <header style={styles.header}>
+                <div style={styles.headerContent}>
+                    <div style={styles.logoSection}>
+                        <h1 style={styles.logo}>YOURCAR</h1>
+                        <p style={styles.tagline}>La simplicité est la forme ultime de l'intelligence</p>
+                    </div>
 
-            {/* MAIN CONTENT */}
-            <div style={styles.mainContainer}>
-                {/* SIDEBAR */}
-                <div style={styles.sidebar}>
-                    <div style={styles.profileCard}>
-                        <div style={styles.profileAvatar}>
-                            {user?.username?.charAt(0).toUpperCase()}
+                    <nav style={styles.nav}>
+                        <button
+                            style={styles.navBtn}
+                            onClick={() => navigate('/home')}
+                        >
+                            HOME
+                        </button>
+                        <button
+                            style={styles.navBtn}
+                            onClick={() => navigate('/shop')}
+                        >
+                            PRODUCTS
+                        </button>
+                        <button
+                            style={styles.navBtn}
+                            onClick={() => navigate('/about')}
+                        >
+                            ABOUT
+                        </button>
+                        <button
+                            style={styles.navBtn}
+                            onClick={() => navigate('/location')}
+                        >
+                            LOCATION
+                        </button>
+                        <button
+                            style={styles.navBtn}
+                            onClick={() => navigate('/my-orders')}
+                        >
+                            Historique
+                        </button>
+
+                        {/* Notification Bell */}
+                        <div style={styles.notificationContainer}>
+                            <button
+                                style={styles.notificationBtn}
+                                onClick={() => setShowNotifications(!showNotifications)}
+                            >
+                                🔔
+                                {notificationCount > 0 && (
+                                    <span style={styles.notificationBadge}>{notificationCount}</span>
+                                )}
+                            </button>
+
+                            {showNotifications && (
+                                <div style={styles.notificationDropdown}>
+                                    <div style={styles.notificationHeader}>
+                                        <h4 style={styles.notificationTitle}>Notifications</h4>
+                                        <button
+                                            style={styles.clearBtn}
+                                            onClick={() => {
+                                                setNotifications(notifications.map(n => ({ ...n, read: true })));
+                                                setNotificationCount(0);
+                                            }}
+                                        >
+                                            Tout marquer comme lu
+                                        </button>
+                                    </div>
+                                    <div style={styles.notificationList}>
+                                        {notifications.map(notification => (
+                                            <div
+                                                key={notification.id}
+                                                style={{
+                                                    ...styles.notificationItem,
+                                                    ...(!notification.read && styles.unreadNotification)
+                                                }}
+                                                onClick={() => handleMarkAsRead(notification.id)}
+                                            >
+                                                <div style={styles.notificationIcon}>📢</div>
+                                                <div style={styles.notificationContent}>
+                                                    <h5 style={styles.notificationItemTitle}>{notification.title}</h5>
+                                                    <p style={styles.notificationMessage}>{notification.message}</p>
+                                                    <small style={styles.notificationTime}>{notification.time}</small>
+                                                </div>
+                                                {!notification.read && (
+                                                    <div style={styles.unreadDot}></div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
-                        <h3 style={styles.profileName}>{user?.username}</h3>
+
+                        {/* Profile Button */}
+                        <button
+                            style={styles.userBtn}
+                            onClick={() => navigate('/profile')}
+                        >
+                            {user?.username?.charAt(0).toUpperCase() || 'U'}
+                        </button>
+                    </nav>
+                </div>
+            </header>
+
+            <div style={styles.mainContent}>
+                {/* Profile Sidebar */}
+                <aside style={styles.sidebar}>
+                    <div style={styles.profileCard}>
+                        <div style={styles.avatarContainer}>
+                            <div style={styles.avatar}>
+                                {user?.username?.charAt(0).toUpperCase()}
+                            </div>
+                        </div>
+                        <h2 style={styles.profileName}>{user?.username}</h2>
                         <p style={styles.profileEmail}>{user?.email}</p>
-                        <div style={styles.memberBadge}>
-                            👑 Active Member
+                        <div style={styles.profileStatus}>
+                            <span style={styles.statusDot}></span>
+                            En ligne
                         </div>
                     </div>
 
-                    <div style={styles.tabs}>
+                    <nav style={styles.sidebarNav}>
                         <button
                             style={{
-                                ...styles.tabButton,
-                                ...(activeTab === 'info' ? styles.tabButtonActive : {})
+                                ...styles.sidebarBtn,
+                                ...(activeTab === 'info' && styles.sidebarBtnActive)
                             }}
                             onClick={() => setActiveTab('info')}
                         >
-                            📋 Account Info
+                            <span style={styles.sidebarIcon}>👤</span>
+                            Informations
                         </button>
                         <button
                             style={{
-                                ...styles.tabButton,
-                                ...(activeTab === 'email' ? styles.tabButtonActive : {})
+                                ...styles.sidebarBtn,
+                                ...(activeTab === 'email' && styles.sidebarBtnActive)
                             }}
                             onClick={() => setActiveTab('email')}
                         >
-                            ✉️ Update Email
+                            <span style={styles.sidebarIcon}>✉️</span>
+                            Modifier Email
                         </button>
                         <button
                             style={{
-                                ...styles.tabButton,
-                                ...(activeTab === 'password' ? styles.tabButtonActive : {})
+                                ...styles.sidebarBtn,
+                                ...(activeTab === 'password' && styles.sidebarBtnActive)
                             }}
                             onClick={() => setActiveTab('password')}
                         >
-                            🔐 Change Password
+                            <span style={styles.sidebarIcon}>🔒</span>
+                            Mot de passe
                         </button>
-                    </div>
-                </div>
+                        <button
+                            style={{
+                                ...styles.sidebarBtn,
+                                ...(activeTab === 'security' && styles.sidebarBtnActive)
+                            }}
+                            onClick={() => setActiveTab('security')}
+                        >
+                            <span style={styles.sidebarIcon}>🛡️</span>
+                            Sécurité
+                        </button>
+                        <button
+                            style={styles.logoutBtn}
+                            onClick={handleLogout}
+                        >
+                            <span style={styles.sidebarIcon}>🚪</span>
+                            Déconnexion
+                        </button>
+                    </nav>
+                </aside>
 
-                {/* CONTENT */}
-                <div style={styles.content}>
-                    {/* TAB 1: Account Info */}
+                {/* Profile Content */}
+                <main style={styles.content}>
+                    {/* Tab 1: Informations */}
                     {activeTab === 'info' && (
                         <div style={styles.tabContent}>
-                            <h2 style={styles.contentTitle}>📋 Account Information</h2>
+                            <h2 style={styles.tabTitle}>Informations du compte</h2>
 
-                            <div style={styles.infoCard}>
-                                <div style={styles.infoGroup}>
-                                    <label style={styles.infoLabel}>👤 Username</label>
-                                    <div style={styles.infoValue}>{user?.username}</div>
+                            <div style={styles.infoGrid}>
+                                <div style={styles.infoCard}>
+                                    <div style={styles.infoIcon}>👤</div>
+                                    <div style={styles.infoContent}>
+                                        <h4 style={styles.infoLabel}>Nom d'utilisateur</h4>
+                                        <p style={styles.infoValue}>{user?.username}</p>
+                                    </div>
                                 </div>
 
-                                <div style={styles.divider}></div>
-
-                                <div style={styles.infoGroup}>
-                                    <label style={styles.infoLabel}>✉️ Email</label>
-                                    <div style={styles.infoValue}>{user?.email}</div>
+                                <div style={styles.infoCard}>
+                                    <div style={styles.infoIcon}>✉️</div>
+                                    <div style={styles.infoContent}>
+                                        <h4 style={styles.infoLabel}>Email</h4>
+                                        <p style={styles.infoValue}>{user?.email}</p>
+                                    </div>
                                 </div>
 
-                                <div style={styles.divider}></div>
-
-                                <div style={styles.infoGroup}>
-                                    <label style={styles.infoLabel}>🔐 Account Status</label>
-                                    <div style={styles.statusBadge}>✅ Active</div>
+                                <div style={styles.infoCard}>
+                                    <div style={styles.infoIcon}>🆔</div>
+                                    <div style={styles.infoContent}>
+                                        <h4 style={styles.infoLabel}>ID Utilisateur</h4>
+                                        <p style={styles.infoValue}>{user?.id || 'N/A'}</p>
+                                    </div>
                                 </div>
 
-                                <div style={styles.divider}></div>
-
-                                <div style={styles.infoGroup}>
-                                    <label style={styles.infoLabel}>📅 Member Since</label>
-                                    <div style={styles.infoValue}>2025</div>
+                                <div style={styles.infoCard}>
+                                    <div style={styles.infoIcon}>📅</div>
+                                    <div style={styles.infoContent}>
+                                        <h4 style={styles.infoLabel}>Membre depuis</h4>
+                                        <p style={styles.infoValue}>2025</p>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div style={styles.actionButtons}>
+                            <div style={styles.quickActions}>
                                 <button
-                                    style={styles.primaryButton}
+                                    style={styles.actionBtn}
                                     onClick={() => setActiveTab('email')}
                                 >
-                                    ✉️ Update Email
+                                    ✏️ Modifier Email
                                 </button>
                                 <button
-                                    style={styles.secondaryButton}
+                                    style={styles.actionBtn}
                                     onClick={() => setActiveTab('password')}
                                 >
-                                    🔐 Change Password
+                                    🔐 Changer Mot de passe
                                 </button>
                             </div>
                         </div>
                     )}
 
-                    {/* TAB 2: Update Email */}
+                    {/* Tab 2: Update Email */}
                     {activeTab === 'email' && (
                         <div style={styles.tabContent}>
-                            <h2 style={styles.contentTitle}>✉️ Update Email Address</h2>
+                            <h2 style={styles.tabTitle}>Modifier l'adresse email</h2>
 
-                            {emailSuccess && <div style={styles.successMessage}>{emailSuccess}</div>}
-                            {emailError && <div style={styles.errorMessage}>{emailError}</div>}
+                            {emailSuccess && (
+                                <div style={styles.successAlert}>{emailSuccess}</div>
+                            )}
+
+                            {emailError && (
+                                <div style={styles.errorAlert}>{emailError}</div>
+                            )}
 
                             <form onSubmit={handleUpdateEmail} style={styles.form}>
                                 <div style={styles.formGroup}>
-                                    <label style={styles.label}>Current Email</label>
-                                    <input
-                                        type="email"
-                                        value={user?.email}
-                                        disabled
-                                        style={styles.inputDisabled}
-                                    />
+                                    <label style={styles.formLabel}>Email actuel</label>
+                                    <div style={styles.currentValue}>{user?.email}</div>
                                 </div>
 
-                                <div style={styles.divider}></div>
-
                                 <div style={styles.formGroup}>
-                                    <label style={styles.label}>New Email Address</label>
+                                    <label style={styles.formLabel}>Nouvel email</label>
                                     <input
                                         type="email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        placeholder="Enter new email"
+                                        placeholder="Entrez le nouvel email"
                                         style={styles.input}
                                         required
                                     />
-                                    <p style={styles.inputHint}>Make sure this is a valid email address</p>
                                 </div>
 
                                 <div style={styles.formActions}>
                                     <button
                                         type="submit"
                                         disabled={emailLoading}
-                                        style={{
-                                            ...styles.submitButton,
-                                            opacity: emailLoading ? 0.6 : 1
-                                        }}
+                                        style={styles.saveBtn}
                                     >
-                                        {emailLoading ? '⏳ Updating...' : '✅ Update Email'}
+                                        {emailLoading ? 'Enregistrement...' : 'Enregistrer les modifications'}
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => {
                                             setEmail(user?.email);
                                             setEmailError('');
+                                            setActiveTab('info');
                                         }}
-                                        style={styles.cancelButton}
+                                        style={styles.cancelBtn}
                                     >
-                                        ❌ Cancel
+                                        Annuler
                                     </button>
                                 </div>
                             </form>
-
-                            <div style={styles.infoBox}>
-                                <p style={styles.infoBoxTitle}>⚠️ Important</p>
-                                <p>A verification email will be sent to your new address.</p>
-                            </div>
                         </div>
                     )}
 
-                    {/* TAB 3: Change Password */}
+                    {/* Tab 3: Change Password */}
                     {activeTab === 'password' && (
                         <div style={styles.tabContent}>
-                            <h2 style={styles.contentTitle}>🔐 Change Password</h2>
+                            <h2 style={styles.tabTitle}>Changer le mot de passe</h2>
 
-                            {passwordSuccess && <div style={styles.successMessage}>{passwordSuccess}</div>}
-                            {passwordError && <div style={styles.errorMessage}>{passwordError}</div>}
+                            {passwordSuccess && (
+                                <div style={styles.successAlert}>{passwordSuccess}</div>
+                            )}
+
+                            {passwordError && (
+                                <div style={styles.errorAlert}>{passwordError}</div>
+                            )}
 
                             <form onSubmit={handleChangePassword} style={styles.form}>
-                                {/* Old Password */}
                                 <div style={styles.formGroup}>
-                                    <label style={styles.label}>Current Password</label>
-                                    <div style={styles.passwordInputWrapper}>
-                                        <input
-                                            type={showPasswords.old ? 'text' : 'password'}
-                                            value={oldPassword}
-                                            onChange={(e) => setOldPassword(e.target.value)}
-                                            placeholder="Enter current password"
-                                            style={styles.input}
-                                            required
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => togglePasswordVisibility('old')}
-                                            style={styles.eyeButton}
-                                        >
-                                            {showPasswords.old ? '👁️' : '👁️‍🗨️'}
-                                        </button>
-                                    </div>
+                                    <label style={styles.formLabel}>Mot de passe actuel</label>
+                                    <input
+                                        type="password"
+                                        value={oldPassword}
+                                        onChange={(e) => setOldPassword(e.target.value)}
+                                        placeholder="Entrez votre mot de passe actuel"
+                                        style={styles.input}
+                                        required
+                                    />
                                 </div>
 
-                                <div style={styles.divider}></div>
-
-                                {/* New Password */}
                                 <div style={styles.formGroup}>
-                                    <label style={styles.label}>New Password</label>
-                                    <div style={styles.passwordInputWrapper}>
-                                        <input
-                                            type={showPasswords.new ? 'text' : 'password'}
-                                            value={newPassword}
-                                            onChange={(e) => setNewPassword(e.target.value)}
-                                            placeholder="Enter new password"
-                                            style={styles.input}
-                                            required
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => togglePasswordVisibility('new')}
-                                            style={styles.eyeButton}
-                                        >
-                                            {showPasswords.new ? '👁️' : '👁️‍🗨️'}
-                                        </button>
-                                    </div>
-                                    <p style={styles.inputHint}>Must be at least 6 characters</p>
+                                    <label style={styles.formLabel}>Nouveau mot de passe</label>
+                                    <input
+                                        type="password"
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                        placeholder="Entrez le nouveau mot de passe"
+                                        style={styles.input}
+                                        required
+                                    />
                                 </div>
 
-                                <div style={styles.divider}></div>
-
-                                {/* Confirm Password */}
                                 <div style={styles.formGroup}>
-                                    <label style={styles.label}>Confirm New Password</label>
-                                    <div style={styles.passwordInputWrapper}>
-                                        <input
-                                            type={showPasswords.confirm ? 'text' : 'password'}
-                                            value={confirmPassword}
-                                            onChange={(e) => setConfirmPassword(e.target.value)}
-                                            placeholder="Confirm new password"
-                                            style={styles.input}
-                                            required
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => togglePasswordVisibility('confirm')}
-                                            style={styles.eyeButton}
-                                        >
-                                            {showPasswords.confirm ? '👁️' : '👁️‍🗨️'}
-                                        </button>
-                                    </div>
+                                    <label style={styles.formLabel}>Confirmer le mot de passe</label>
+                                    <input
+                                        type="password"
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        placeholder="Confirmez le nouveau mot de passe"
+                                        style={styles.input}
+                                        required
+                                    />
                                 </div>
-
-                                {/* Password Strength */}
-                                {newPassword && (
-                                    <div style={styles.passwordStrength}>
-                                        <p style={styles.strengthLabel}>Password Strength:</p>
-                                        <div style={styles.strengthBar}>
-                                            <div
-                                                style={{
-                                                    ...styles.strengthFill,
-                                                    width: newPassword.length >= 8 ? '100%' : newPassword.length >= 6 ? '50%' : '25%',
-                                                    backgroundColor: newPassword.length >= 8 ? '#2ecc71' : newPassword.length >= 6 ? '#f39c12' : '#e74c3c'
-                                                }}
-                                            ></div>
-                                        </div>
-                                    </div>
-                                )}
 
                                 <div style={styles.formActions}>
                                     <button
                                         type="submit"
                                         disabled={passwordLoading}
-                                        style={{
-                                            ...styles.submitButton,
-                                            opacity: passwordLoading ? 0.6 : 1
-                                        }}
+                                        style={styles.saveBtn}
                                     >
-                                        {passwordLoading ? '⏳ Changing...' : '✅ Change Password'}
+                                        {passwordLoading ? 'Changement...' : 'Changer le mot de passe'}
                                     </button>
                                     <button
                                         type="button"
@@ -426,350 +476,540 @@ export default function Profile() {
                                             setNewPassword('');
                                             setConfirmPassword('');
                                             setPasswordError('');
+                                            setActiveTab('info');
                                         }}
-                                        style={styles.cancelButton}
+                                        style={styles.cancelBtn}
                                     >
-                                        ❌ Cancel
+                                        Annuler
                                     </button>
                                 </div>
                             </form>
+                        </div>
+                    )}
 
-                            <div style={styles.infoBox}>
-                                <p style={styles.infoBoxTitle}>🔐 Security Tips</p>
-                                <ul style={styles.tipsList}>
-                                    <li>Use a strong password with letters, numbers, and symbols</li>
-                                    <li>Don't use the same password as other accounts</li>
-                                    <li>Change your password regularly for security</li>
-                                </ul>
+                    {/* Tab 4: Security */}
+                    {activeTab === 'security' && (
+                        <div style={styles.tabContent}>
+                            <h2 style={styles.tabTitle}>Paramètres de sécurité</h2>
+
+                            <div style={styles.securityGrid}>
+                                <div style={styles.securityCard}>
+                                    <div style={styles.securityIcon}>🔐</div>
+                                    <h4 style={styles.securityTitle}>Authentification à deux facteurs</h4>
+                                    <p style={styles.securityDesc}>
+                                        Ajoutez une couche de sécurité supplémentaire à votre compte
+                                    </p>
+                                    <button style={styles.securityBtn}>Activer</button>
+                                </div>
+
+                                <div style={styles.securityCard}>
+                                    <div style={styles.securityIcon}>📱</div>
+                                    <h4 style={styles.securityTitle}>Appareils connectés</h4>
+                                    <p style={styles.securityDesc}>
+                                        Gérez les appareils qui ont accès à votre compte
+                                    </p>
+                                    <button style={styles.securityBtn}>Vérifier</button>
+                                </div>
+
+                                <div style={styles.securityCard}>
+                                    <div style={styles.securityIcon}>📧</div>
+                                    <h4 style={styles.securityTitle}>Notifications de sécurité</h4>
+                                    <p style={styles.securityDesc}>
+                                        Recevez des alertes pour les activités suspectes
+                                    </p>
+                                    <button style={styles.securityBtn}>Configurer</button>
+                                </div>
+
+                                <div style={styles.securityCard}>
+                                    <div style={styles.securityIcon}>🗑️</div>
+                                    <h4 style={styles.securityTitle}>Suppression du compte</h4>
+                                    <p style={styles.securityDesc}>
+                                        Supprimez définitivement votre compte et vos données
+                                    </p>
+                                    <button style={styles.deleteBtn}>Supprimer le compte</button>
+                                </div>
                             </div>
                         </div>
                     )}
-                </div>
+                </main>
             </div>
 
-            {/* SPACING FOR BOTTOM BAR */}
-            <div style={{ height: '100px' }}></div>
+            {/* FOOTER */}
+            <footer style={styles.footer}>
+                <p>© 2025 YOURCAR. Tous droits réservés.</p>
+            </footer>
         </div>
     );
 }
 
 const styles = {
-    pageContainer: {
-        backgroundColor: '#f0f2f5',
+    container: {
         minHeight: '100vh',
-        paddingTop: '0',
+        backgroundColor: '#FFFFFF',
+        fontFamily: "'Segoe UI', Arial, sans-serif"
     },
     header: {
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        color: 'white',
-        padding: '40px 20px',
-        textAlign: 'center',
+        backgroundColor: '#FFFFFF',
+        padding: '20px 40px',
+        boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 100
     },
-    title: {
-        fontSize: '32px',
-        fontWeight: 'bold',
-        margin: '0 0 10px 0',
-    },
-    subtitle: {
-        fontSize: '16px',
-        opacity: 0.9,
-        margin: 0,
-    },
-    mainContainer: {
-        maxWidth: '1000px',
+    headerContent: {
+        maxWidth: '1200px',
         margin: '0 auto',
-        display: 'grid',
-        gridTemplateColumns: '280px 1fr',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+    },
+    logoSection: {
+        display: 'flex',
+        flexDirection: 'column'
+    },
+    logo: {
+        fontSize: '28px',
+        fontWeight: '800',
+        color: '#333333',
+        margin: '0 0 5px 0',
+        letterSpacing: '2px'
+    },
+    tagline: {
+        fontSize: '12px',
+        color: '#666666',
+        letterSpacing: '1px',
+        margin: 0
+    },
+    nav: {
+        display: 'flex',
+        gap: '25px',
+        alignItems: 'center',
+        position: 'relative'
+    },
+    navBtn: {
+        background: 'none',
+        border: 'none',
+        fontSize: '14px',
+        fontWeight: '500',
+        color: '#666666',
+        cursor: 'pointer',
+        padding: '8px 0',
+        transition: 'color 0.3s'
+    },
+    notificationContainer: {
+        position: 'relative'
+    },
+    notificationBtn: {
+        background: 'none',
+        border: 'none',
+        fontSize: '20px',
+        cursor: 'pointer',
+        position: 'relative',
+        padding: '8px'
+    },
+    notificationBadge: {
+        position: 'absolute',
+        top: '-5px',
+        right: '-5px',
+        backgroundColor: '#FF4757',
+        color: 'white',
+        borderRadius: '50%',
+        width: '18px',
+        height: '18px',
+        fontSize: '10px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontWeight: 'bold'
+    },
+    notificationDropdown: {
+        position: 'absolute',
+        top: '100%',
+        right: 0,
+        backgroundColor: 'white',
+        boxShadow: '0 5px 20px rgba(0,0,0,0.1)',
+        borderRadius: '10px',
+        width: '350px',
+        zIndex: 1000,
+        marginTop: '10px'
+    },
+    notificationHeader: {
+        padding: '15px',
+        borderBottom: '1px solid #eee',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+    },
+    notificationTitle: {
+        margin: 0,
+        fontSize: '16px',
+        fontWeight: '600'
+    },
+    clearBtn: {
+        background: 'none',
+        border: 'none',
+        color: '#667eea',
+        fontSize: '12px',
+        cursor: 'pointer'
+    },
+    notificationList: {
+        maxHeight: '300px',
+        overflowY: 'auto'
+    },
+    notificationItem: {
+        padding: '15px',
+        borderBottom: '1px solid #eee',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'flex-start',
+        transition: 'background 0.3s',
+        position: 'relative'
+    },
+    unreadNotification: {
+        backgroundColor: '#f8f9ff'
+    },
+    notificationIcon: {
+        fontSize: '18px',
+        marginRight: '10px',
+        marginTop: '2px'
+    },
+    notificationContent: {
+        flex: 1
+    },
+    notificationItemTitle: {
+        margin: '0 0 5px 0',
+        fontSize: '14px',
+        fontWeight: '600'
+    },
+    notificationMessage: {
+        margin: '0 0 5px 0',
+        fontSize: '13px',
+        color: '#666'
+    },
+    notificationTime: {
+        fontSize: '11px',
+        color: '#999'
+    },
+    unreadDot: {
+        width: '8px',
+        height: '8px',
+        backgroundColor: '#667eea',
+        borderRadius: '50%',
+        marginLeft: '10px'
+    },
+    userBtn: {
+        width: '40px',
+        height: '40px',
+        borderRadius: '50%',
+        backgroundColor: '#333333',
+        color: 'white',
+        border: 'none',
+        fontSize: '18px',
+        fontWeight: 'bold',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    mainContent: {
+        display: 'flex',
+        maxWidth: '1200px',
+        margin: '40px auto',
         gap: '30px',
-        padding: '30px 20px',
+        padding: '0 40px'
     },
     sidebar: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '20px',
+        width: '250px',
+        flexShrink: 0
     },
     profileCard: {
         backgroundColor: 'white',
-        borderRadius: '12px',
-        padding: '30px',
+        borderRadius: '15px',
+        padding: '25px',
         textAlign: 'center',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        boxShadow: '0 5px 15px rgba(0,0,0,0.05)',
+        marginBottom: '20px'
     },
-    profileAvatar: {
-        width: '100px',
-        height: '100px',
+    avatarContainer: {
+        marginBottom: '15px'
+    },
+    avatar: {
+        width: '80px',
+        height: '80px',
         borderRadius: '50%',
         backgroundColor: '#667eea',
         color: 'white',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontSize: '40px',
+        fontSize: '32px',
         fontWeight: 'bold',
-        margin: '0 auto 15px',
+        margin: '0 auto'
     },
     profileName: {
         fontSize: '20px',
-        fontWeight: 'bold',
-        color: '#2c3e50',
-        margin: '0 0 5px 0',
+        fontWeight: '600',
+        color: '#333333',
+        margin: '0 0 5px 0'
     },
     profileEmail: {
         fontSize: '14px',
-        color: '#7f8c8d',
-        margin: '0 0 15px 0',
+        color: '#666666',
+        margin: '0 0 10px 0'
     },
-    memberBadge: {
-        display: 'inline-block',
-        backgroundColor: '#2ecc71',
-        color: 'white',
-        padding: '8px 16px',
-        borderRadius: '20px',
-        fontSize: '13px',
-        fontWeight: 'bold',
+    profileStatus: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '12px',
+        color: '#666666',
+        gap: '8px'
     },
-    tabs: {
+    statusDot: {
+        width: '8px',
+        height: '8px',
+        backgroundColor: '#4CAF50',
+        borderRadius: '50%'
+    },
+    sidebarNav: {
         backgroundColor: 'white',
-        borderRadius: '12px',
-        overflow: 'hidden',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        borderRadius: '15px',
+        padding: '20px',
+        boxShadow: '0 5px 15px rgba(0,0,0,0.05)'
     },
-    tabButton: {
+    sidebarBtn: {
         width: '100%',
-        padding: '15px',
-        border: 'none',
-        backgroundColor: 'white',
-        color: '#2c3e50',
-        cursor: 'pointer',
-        fontSize: '14px',
         textAlign: 'left',
-        transition: 'all 0.3s',
-        borderLeft: '4px solid transparent',
+        background: 'none',
+        border: 'none',
+        padding: '12px 15px',
+        fontSize: '14px',
+        fontWeight: '500',
+        color: '#666666',
+        cursor: 'pointer',
+        borderRadius: '8px',
+        marginBottom: '5px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        transition: 'all 0.3s'
     },
-    tabButtonActive: {
-        backgroundColor: '#f0f2f5',
-        color: '#667eea',
-        borderLeftColor: '#667eea',
-        fontWeight: 'bold',
+    sidebarBtnActive: {
+        backgroundColor: '#667eea',
+        color: 'white'
+    },
+    sidebarIcon: {
+        fontSize: '18px'
+    },
+    logoutBtn: {
+        width: '100%',
+        textAlign: 'left',
+        background: 'none',
+        border: 'none',
+        padding: '12px 15px',
+        fontSize: '14px',
+        fontWeight: '500',
+        color: '#FF4757',
+        cursor: 'pointer',
+        borderRadius: '8px',
+        marginTop: '10px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        transition: 'background 0.3s'
     },
     content: {
-        backgroundColor: 'white',
-        borderRadius: '12px',
-        padding: '30px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        flex: 1
     },
     tabContent: {
-        animation: 'fadeIn 0.3s',
+        backgroundColor: 'white',
+        borderRadius: '15px',
+        padding: '30px',
+        boxShadow: '0 5px 15px rgba(0,0,0,0.05)'
     },
-    contentTitle: {
+    tabTitle: {
         fontSize: '24px',
-        fontWeight: 'bold',
-        color: '#2c3e50',
-        margin: '0 0 30px 0',
+        fontWeight: '700',
+        color: '#333333',
+        margin: '0 0 25px 0'
+    },
+    infoGrid: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+        gap: '20px',
+        marginBottom: '30px'
     },
     infoCard: {
         backgroundColor: '#f8f9fa',
-        borderRadius: '8px',
+        borderRadius: '10px',
         padding: '20px',
-        marginBottom: '20px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '15px'
     },
-    infoGroup: {
-        marginBottom: '15px',
+    infoIcon: {
+        fontSize: '24px'
+    },
+    infoContent: {
+        flex: 1
     },
     infoLabel: {
-        fontSize: '13px',
-        color: '#7f8c8d',
-        fontWeight: 'bold',
-        marginBottom: '5px',
-        display: 'block',
+        fontSize: '12px',
+        color: '#666666',
+        margin: '0 0 5px 0'
     },
     infoValue: {
         fontSize: '16px',
-        color: '#2c3e50',
-        fontWeight: 'bold',
+        fontWeight: '600',
+        color: '#333333',
+        margin: 0
     },
-    statusBadge: {
-        display: 'inline-block',
-        backgroundColor: '#2ecc71',
-        color: 'white',
-        padding: '6px 12px',
-        borderRadius: '20px',
-        fontSize: '13px',
-        fontWeight: 'bold',
-    },
-    divider: {
-        height: '1px',
-        backgroundColor: '#e0e0e0',
-        margin: '15px 0',
-    },
-    actionButtons: {
+    quickActions: {
         display: 'flex',
-        gap: '15px',
-        marginTop: '25px',
+        gap: '15px'
     },
-    primaryButton: {
-        flex: 1,
-        padding: '12px 20px',
-        backgroundColor: '#667eea',
-        color: 'white',
+    actionBtn: {
+        backgroundColor: '#f0f2f5',
         border: 'none',
-        borderRadius: '6px',
-        cursor: 'pointer',
-        fontWeight: 'bold',
+        padding: '12px 20px',
         fontSize: '14px',
-        transition: 'all 0.3s',
+        fontWeight: '600',
+        color: '#333333',
+        cursor: 'pointer',
+        borderRadius: '8px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        transition: 'background 0.3s'
     },
-    secondaryButton: {
-        flex: 1,
-        padding: '12px 20px',
-        backgroundColor: '#e0e0e0',
-        color: '#2c3e50',
-        border: 'none',
-        borderRadius: '6px',
-        cursor: 'pointer',
-        fontWeight: 'bold',
-        fontSize: '14px',
-        transition: 'all 0.3s',
+    successAlert: {
+        backgroundColor: '#d4edda',
+        color: '#155724',
+        padding: '15px',
+        borderRadius: '8px',
+        marginBottom: '20px',
+        fontSize: '14px'
+    },
+    errorAlert: {
+        backgroundColor: '#f8d7da',
+        color: '#721c24',
+        padding: '15px',
+        borderRadius: '8px',
+        marginBottom: '20px',
+        fontSize: '14px'
     },
     form: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '0',
+        maxWidth: '500px'
     },
     formGroup: {
-        marginBottom: '20px',
+        marginBottom: '20px'
     },
-    label: {
-        fontSize: '14px',
-        fontWeight: 'bold',
-        color: '#2c3e50',
-        marginBottom: '8px',
+    formLabel: {
         display: 'block',
+        fontSize: '14px',
+        fontWeight: '600',
+        color: '#333333',
+        marginBottom: '8px'
+    },
+    currentValue: {
+        padding: '12px',
+        backgroundColor: '#f8f9fa',
+        borderRadius: '8px',
+        fontSize: '16px',
+        color: '#666666'
     },
     input: {
         width: '100%',
         padding: '12px',
-        border: '2px solid #e0e0e0',
-        borderRadius: '6px',
-        fontSize: '14px',
-        transition: 'border-color 0.3s',
+        border: '1px solid #e0e0e0',
+        borderRadius: '8px',
+        fontSize: '16px',
         boxSizing: 'border-box',
-    },
-    inputDisabled: {
-        width: '100%',
-        padding: '12px',
-        border: '2px solid #e0e0e0',
-        borderRadius: '6px',
-        fontSize: '14px',
-        backgroundColor: '#f8f9fa',
-        color: '#7f8c8d',
-        cursor: 'not-allowed',
-        boxSizing: 'border-box',
-    },
-    inputHint: {
-        fontSize: '12px',
-        color: '#7f8c8d',
-        marginTop: '5px',
-        margin: 0,
-    },
-    passwordInputWrapper: {
-        position: 'relative',
-        display: 'flex',
-        alignItems: 'center',
-    },
-    eyeButton: {
-        position: 'absolute',
-        right: '12px',
-        backgroundColor: 'transparent',
-        border: 'none',
-        cursor: 'pointer',
-        fontSize: '18px',
-        padding: '0',
-    },
-    passwordStrength: {
-        marginTop: '15px',
-        marginBottom: '15px',
-    },
-    strengthLabel: {
-        fontSize: '12px',
-        fontWeight: 'bold',
-        color: '#2c3e50',
-        margin: '0 0 8px 0',
-    },
-    strengthBar: {
-        height: '6px',
-        backgroundColor: '#e0e0e0',
-        borderRadius: '3px',
-        overflow: 'hidden',
-    },
-    strengthFill: {
-        height: '100%',
-        transition: 'width 0.3s, background-color 0.3s',
+        outline: 'none',
+        transition: 'border 0.3s'
     },
     formActions: {
         display: 'flex',
         gap: '15px',
-        marginTop: '30px',
+        marginTop: '25px'
     },
-    submitButton: {
+    saveBtn: {
         flex: 1,
-        padding: '12px 20px',
-        backgroundColor: '#2ecc71',
+        padding: '14px',
+        backgroundColor: '#667eea',
         color: 'white',
         border: 'none',
-        borderRadius: '6px',
-        cursor: 'pointer',
-        fontWeight: 'bold',
-        fontSize: '14px',
-        transition: 'all 0.3s',
-    },
-    cancelButton: {
-        flex: 1,
-        padding: '12px 20px',
-        backgroundColor: '#e74c3c',
-        color: 'white',
-        border: 'none',
-        borderRadius: '6px',
-        cursor: 'pointer',
-        fontWeight: 'bold',
-        fontSize: '14px',
-        transition: 'all 0.3s',
-    },
-    infoBox: {
-        backgroundColor: '#e8f4f8',
-        border: '2px solid #3498db',
         borderRadius: '8px',
-        padding: '15px',
-        marginTop: '25px',
+        fontSize: '16px',
+        fontWeight: '600',
+        cursor: 'pointer',
+        transition: 'background 0.3s'
     },
-    infoBoxTitle: {
+    cancelBtn: {
+        flex: 1,
+        padding: '14px',
+        backgroundColor: '#f0f2f5',
+        color: '#333333',
+        border: 'none',
+        borderRadius: '8px',
+        fontSize: '16px',
+        fontWeight: '600',
+        cursor: 'pointer',
+        transition: 'background 0.3s'
+    },
+    securityGrid: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+        gap: '20px'
+    },
+    securityCard: {
+        backgroundColor: '#f8f9fa',
+        borderRadius: '10px',
+        padding: '25px',
+        textAlign: 'center'
+    },
+    securityIcon: {
+        fontSize: '32px',
+        marginBottom: '15px'
+    },
+    securityTitle: {
+        fontSize: '16px',
+        fontWeight: '600',
+        color: '#333333',
+        margin: '0 0 10px 0'
+    },
+    securityDesc: {
         fontSize: '14px',
-        fontWeight: 'bold',
-        color: '#3498db',
-        margin: '0 0 8px 0',
+        color: '#666666',
+        margin: '0 0 20px 0',
+        lineHeight: 1.5
     },
-    tipsList: {
-        fontSize: '13px',
-        color: '#2c3e50',
-        paddingLeft: '20px',
-        margin: 0,
-    },
-    successMessage: {
-        backgroundColor: '#d4edda',
-        color: '#155724',
-        padding: '12px 15px',
-        borderRadius: '6px',
-        marginBottom: '20px',
+    securityBtn: {
+        backgroundColor: '#667eea',
+        color: 'white',
+        border: 'none',
+        padding: '10px 20px',
         fontSize: '14px',
-        fontWeight: 'bold',
+        fontWeight: '600',
+        borderRadius: '8px',
+        cursor: 'pointer'
     },
-    errorMessage: {
-        backgroundColor: '#f8d7da',
-        color: '#721c24',
-        padding: '12px 15px',
-        borderRadius: '6px',
-        marginBottom: '20px',
+    deleteBtn: {
+        backgroundColor: '#FF4757',
+        color: 'white',
+        border: 'none',
+        padding: '10px 20px',
         fontSize: '14px',
-        fontWeight: 'bold',
+        fontWeight: '600',
+        borderRadius: '8px',
+        cursor: 'pointer'
     },
+    footer: {
+        padding: '30px 40px',
+        textAlign: 'center',
+        color: '#666666',
+        fontSize: '14px',
+        borderTop: '1px solid #E0E0E0',
+        marginTop: '50px'
+    }
 };

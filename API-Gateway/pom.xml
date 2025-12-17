@@ -19,6 +19,16 @@
 	</properties>
 
 	<dependencies>
+
+		<!-- WebFlux reactive -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webflux</artifactId>
+		</dependency>
+
+
+
+
 		<!-- API Gateway WebFlux -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
