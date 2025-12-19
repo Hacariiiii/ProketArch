@@ -230,3 +230,70 @@ export default {
     getStatusColor,
     getStatusIcon
 };
+
+
+// Dans catalogueService.js, ajoute ces fonctions :
+
+/**
+ * RÉCUPÉRER TOUS LES PRODUITS ACHETÉS PAR UN UTILISATEUR
+ */
+export const getUserPurchasedProducts = async (userId) => {
+    try {
+        const historyData = await getUserOrderHistory(userId);
+
+        let ordersList = [];
+        if (Array.isArray(historyData)) {
+            ordersList = historyData;
+        } else if (historyData?.orders) {
+            ordersList = historyData.orders;
+        } else if (historyData?.history) {
+            ordersList = historyData.history;
+        }
+
+        // Extraire tous les produits
+        const allProducts = [];
+        ordersList.forEach(order => {
+            if (order.items && Array.isArray(order.items)) {
+                order.items.forEach(item => {
+                    if (item.productId) {
+                        allProducts.push({
+                            productId: item.productId,
+                            productName: item.productName || `Produit ${item.productId}`,
+                            orderId: order.orderNumber,
+                            orderDate: order.orderDate,
+                            image: item.image || null,
+                            unitPrice: item.unitPrice || 0,
+                            quantity: item.quantity || 1,
+                            orderStatus: order.orderStatus
+                        });
+                    }
+                });
+            }
+        });
+
+        return allProducts;
+
+    } catch (error) {
+        console.error('Erreur récupération produits achetés:', error);
+        return [];
+    }
+};
+
+/**
+ * RÉCUPÉRER LES PRODUITS LIVRÉS SEULEMENT
+ */
+export const getUserDeliveredProducts = async (userId) => {
+    try {
+        const allProducts = await getUserPurchasedProducts(userId);
+
+        // Filtrer seulement les produits livrés
+        return allProducts.filter(product =>
+            product.orderStatus === 'DELIVERED' ||
+            product.orderStatus === 'SHIPPED'
+        );
+
+    } catch (error) {
+        console.error('Erreur récupération produits livrés:', error);
+        return [];
+    }
+};

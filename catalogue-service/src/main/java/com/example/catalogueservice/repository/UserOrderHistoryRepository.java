@@ -25,4 +25,10 @@ public interface UserOrderHistoryRepository extends JpaRepository<UserOrderHisto
 
     List<UserOrderHistory> findByUserIdAndOrderDateBetween(
             Long userId, LocalDateTime startDate, LocalDateTime endDate);
+
+
+    List<UserOrderHistory> findByUserIdAndOrderStatus(Long userId, String orderStatus);
+
+
+
 }

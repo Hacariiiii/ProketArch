@@ -171,4 +171,18 @@ public class OrderService {
 
         return new CartItemDTO(item.getProductId(), item.getProductName(), item.getPrice(), item.getImage());
     }
+
+    public boolean canUserReview(Long userId, Long productId) {
+        return orderRepository
+                .findByUserIdAndStatus(userId, OrderStatus.DELIVERED)
+                .stream()
+                .anyMatch(order ->
+                        order.getItems().stream()
+                                .anyMatch(item ->
+                                        item.getProductId().equals(productId)
+                                )
+                );
+    }
+
+
 }

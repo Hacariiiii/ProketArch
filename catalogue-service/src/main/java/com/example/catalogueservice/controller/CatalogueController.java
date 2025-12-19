@@ -531,4 +531,19 @@ public class CatalogueController {
                 .items(itemDtos)
                 .build();
     }
+    @GetMapping("/validate-review")
+    public ResponseEntity<?> canReview(
+            @RequestParam Long userId,
+            @RequestParam Long productId
+    ) {
+        boolean allowed = orderHistoryRepository.findByUserIdAndOrderStatus(userId, "DELIVERED")
+                .stream()
+                .anyMatch(order ->
+                        order.getItems().stream()
+                                .anyMatch(item -> item.getProductId().equals(productId))
+                );
+
+        return ResponseEntity.ok(Map.of("allowed", allowed));
+    }
+
 }

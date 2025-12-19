@@ -173,15 +173,24 @@ public class OrderController {
         return ResponseEntity.ok(items);
     }
 
-    @GetMapping("/cart-items/{id}")
-    public ResponseEntity<CartItemDTO> getCartItemById(@PathVariable Long id) {
-        try {
-            CartItemDTO item = orderService.getCartItemById(id);
-            return ResponseEntity.ok(item);
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(null);
-        }
+    @GetMapping("/validate-review")
+    public ResponseEntity<?> validateReview(
+            @RequestParam Long userId,
+            @RequestParam Long productId
+    ) {
+        boolean allowed = orderService.canUserReview(userId, productId);
+        return ResponseEntity.ok(Map.of("allowed", allowed));
     }
+
+
+
+
+
+
+
+
+
+
+
 
 }

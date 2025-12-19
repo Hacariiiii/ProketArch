@@ -10,6 +10,7 @@ import Shop from "./components/Home/Shop";
 import About from "./components/Home/About";
 import Location from "./components/Home/Location";
 import MyOrders from "./components/Home/MyOrders.jsx";
+import MyReviews from "./components/Home/MyReviews.jsx";
 
 
 export default function App() {
@@ -30,6 +31,14 @@ export default function App() {
                         element={
                             <PrivateRoute>
                                 <MyOrders />
+                            </PrivateRoute>
+                        }
+                    />
+                    <Route
+                        path="/MyReviews"
+                        element={
+                            <PrivateRoute>
+                                <MyReviews />
                             </PrivateRoute>
                         }
                     />

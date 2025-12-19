@@ -13,6 +13,11 @@ export default function Shop() {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCity, setSelectedCity] = useState('');
     const [addressDetails, setAddressDetails] = useState('');
+
+    // Pagination states
+    const [currentPage, setCurrentPage] = useState(1);
+    const [productsPerPage] = useState(4);
+
     const BASE_IMAGE_URL = "http://localhost:8086/images";
 
     // Initialize
@@ -86,7 +91,9 @@ export default function Shop() {
                     { productId: 3, productName: 'Clavier Mécanique', price: 89.99, description: 'Switches Blue', image: '⌨️', category: 'Périphériques', stock: 15 },
                     { productId: 4, productName: 'Écran 4K 27"', price: 299.99, description: '144Hz, HDR', image: '🖥️', category: 'Électronique', stock: 8 },
                     { productId: 5, productName: 'Casque Gaming', price: 129.99, description: '7.1 Surround', image: '🎧', category: 'Audio', stock: 12 },
-                    { productId: 6, productName: 'Webcam 4K', price: 79.99, description: 'Micro intégré', image: '📷', category: 'Vidéo', stock: 25 }
+                    { productId: 6, productName: 'Webcam 4K', price: 79.99, description: 'Micro intégré', image: '📷', category: 'Vidéo', stock: 25 },
+                    { productId: 7, productName: 'Tablette Graphique', price: 199.99, description: 'Stylus 2048 niveaux', image: '✏️', category: 'Électronique', stock: 7 },
+                    { productId: 8, productName: 'Enceinte Bluetooth', price: 59.99, description: 'Basse renforcée', image: '🔊', category: 'Audio', stock: 18 }
                 ]);
             }
         } catch (err) {
@@ -96,9 +103,12 @@ export default function Shop() {
             setProducts([
                 { productId: 1, productName: 'Laptop Gaming', price: 1299.99, description: 'RTX 4080, 32GB RAM', image: '💻', category: 'Électronique', stock: 5 },
                 { productId: 2, productName: 'Souris Sans Fil', price: 49.99, description: 'RGB, 16000 DPI', image: '🖱️', category: 'Périphériques', stock: 20 },
+                { productId: 3, productName: 'Clavier Mécanique', price: 89.99, description: 'Switches Blue', image: '⌨️', category: 'Périphériques', stock: 15 },
+                { productId: 4, productName: 'Écran 4K 27"', price: 299.99, description: '144Hz, HDR', image: '🖥️', category: 'Électronique', stock: 8 },
             ]);
         } finally {
             setLoading(false);
+            setCurrentPage(1); // Reset to first page when loading new products
         }
     };
 
@@ -108,6 +118,21 @@ export default function Shop() {
         product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.category.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    // Pagination logic
+    const indexOfLastProduct = currentPage * productsPerPage;
+    const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+    const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+    const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+
+    // Change page
+    const paginate = (pageNumber) => setCurrentPage(pageNumber);
+    const nextPage = () => {
+        if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+    };
+    const prevPage = () => {
+        if (currentPage > 1) setCurrentPage(currentPage - 1);
+    };
 
     // Cart functions
     const addToCart = (product) => {
@@ -156,7 +181,6 @@ export default function Shop() {
             return;
         }
 
-        // SUPPRIME shippingAddress et utilise seulement selectedCity/addressDetails
         if (!selectedCity) {
             alert('📍 Sélectionnez votre ville');
             return;
@@ -169,7 +193,7 @@ export default function Shop() {
         setLoading(true);
         try {
             const orderData = {
-                shippingAddress: `${addressDetails}, ${selectedCity}`, // ← Utilise selectedCity
+                shippingAddress: `${addressDetails}, ${selectedCity}`,
                 city: selectedCity,
                 addressDetails: addressDetails,
                 items: cart.map(item => ({
@@ -192,7 +216,7 @@ export default function Shop() {
                 itemsCount: cart.length
             });
 
-            // Reset: SUPPRIME shippingAddress
+            // Reset
             setCart([]);
             setSelectedCity('');
             setAddressDetails('');
@@ -432,6 +456,57 @@ export default function Shop() {
             transition: 'all 0.3s'
         },
 
+        // Pagination
+        paginationContainer: {
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginTop: '3rem',
+            gap: '0.5rem',
+            flexWrap: 'wrap'
+        },
+
+        paginationBtn: {
+            background: 'white',
+            border: '2px solid #e0e0e0',
+            color: '#667eea',
+            padding: '0.5rem 1rem',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontWeight: '600',
+            transition: 'all 0.3s',
+            minWidth: '40px',
+            textAlign: 'center'
+        },
+
+        paginationBtnActive: {
+            background: '#667eea',
+            color: 'white',
+            borderColor: '#667eea',
+            boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)'
+        },
+
+        paginationArrow: {
+            background: '#667eea',
+            color: 'white',
+            border: 'none',
+            padding: '0.5rem 1rem',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontWeight: '600',
+            transition: 'all 0.3s',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem'
+        },
+
+        paginationArrowDisabled: {
+            background: '#e0e0e0',
+            color: '#95a5a6',
+            cursor: 'not-allowed',
+            opacity: 0.6
+        },
+
         // Cart
         cartItem: {
             display: 'flex',
@@ -546,17 +621,6 @@ export default function Shop() {
             color: '#7f8c8d',
             fontSize: '0.9rem',
             borderTop: '1px solid #e0e0e0'
-        },
-
-        // Animations
-        '@keyframes spin': {
-            '0%': { transform: 'rotate(0deg)' },
-            '100%': { transform: 'rotate(360deg)' }
-        },
-
-        '@keyframes slideIn': {
-            from: { transform: 'translateY(-20px)', opacity: 0 },
-            to: { transform: 'translateY(0)', opacity: 1 }
         }
     };
 
@@ -753,6 +817,15 @@ export default function Shop() {
                                 <span style={{ color: '#7f8c8d', fontSize: '0.9rem' }}>
                                     {searchTerm && `Résultats pour: "${searchTerm}"`}
                                 </span>
+                                <span style={{
+                                    background: '#667eea',
+                                    color: 'white',
+                                    padding: '0.25rem 0.75rem',
+                                    borderRadius: '12px',
+                                    fontSize: '0.9rem'
+                                }}>
+                                    Page {currentPage} sur {totalPages}
+                                </span>
                             </div>
                         </div>
 
@@ -785,59 +858,97 @@ export default function Shop() {
                                 </button>
                             </div>
                         ) : (
-                            <div style={styles.productsGrid}>
-                                {filteredProducts.map(product => (
-                                    <div key={product.productId} style={styles.productCard}>
+                            <>
+                                <div style={styles.productsGrid}>
+                                    {currentProducts.map(product => (
+                                        <div key={product.productId} style={styles.productCard}>
+                                            <div style={styles.productImage}>
+                                                <img
+                                                    src={`${BASE_IMAGE_URL}/${product.image}`}
+                                                    alt={product.productName}
+                                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                />
+                                            </div>
 
+                                            <div style={styles.productInfo}>
+                                                <h3 style={styles.productTitle}>{product.productName}</h3>
+                                                <p style={styles.productDesc}>{product.description}</p>
+                                                <div style={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    fontSize: '0.8rem',
+                                                    color: '#95a5a6'
+                                                }}>
+                                                    <span>{product.category}</span>
+                                                    <span>Stock: {product.stock}</span>
+                                                </div>
+                                            </div>
 
-
-
-                                        <div style={styles.productImage}>
-                                            <img
-                                                src={`${BASE_IMAGE_URL}/${product.image}`}
-                                                alt={product.productName}
-                                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                            />
-                                        </div>
-
-                                        <div style={styles.productInfo}>
-                                            <h3 style={styles.productTitle}>{product.productName}</h3>
-                                            <p style={styles.productDesc}>{product.description}</p>
-                                            <div style={{
-                                                display: 'flex',
-                                                justifyContent: 'space-between',
-                                                fontSize: '0.8rem',
-                                                color: '#95a5a6'
-                                            }}>
-                                                <span>{product.category}</span>
-                                                <span>Stock: {product.stock}</span>
+                                            <div style={styles.productFooter}>
+                                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                    <span style={styles.price}>${product.price.toFixed(2)}</span>
+                                                    {product.price > 100 && (
+                                                        <small style={{ color: '#2ecc71', fontSize: '0.8rem' }}>
+                                                            🚚 Livraison gratuite
+                                                        </small>
+                                                    )}
+                                                </div>
+                                                <button
+                                                    onClick={() => addToCart(product)}
+                                                    style={{
+                                                        ...styles.btnAddCart,
+                                                        opacity: product.stock <= 0 ? 0.6 : 1,
+                                                        cursor: product.stock <= 0 ? 'not-allowed' : 'pointer'
+                                                    }}
+                                                    disabled={product.stock <= 0}
+                                                >
+                                                    {product.stock > 0 ? '🛒 Ajouter' : 'Rupture'}
+                                                </button>
                                             </div>
                                         </div>
+                                    ))}
+                                </div>
 
-                                        <div style={styles.productFooter}>
-                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                <span style={styles.price}>${product.price.toFixed(2)}</span>
-                                                {product.price > 100 && (
-                                                    <small style={{ color: '#2ecc71', fontSize: '0.8rem' }}>
-                                                        🚚 Livraison gratuite
-                                                    </small>
-                                                )}
-                                            </div>
+                                {/* Pagination Controls */}
+                                {filteredProducts.length > productsPerPage && (
+                                    <div style={styles.paginationContainer}>
+                                        <button
+                                            onClick={prevPage}
+                                            disabled={currentPage === 1}
+                                            style={{
+                                                ...styles.paginationArrow,
+                                                ...(currentPage === 1 && styles.paginationArrowDisabled)
+                                            }}
+                                        >
+                                            ← Précédent
+                                        </button>
+
+                                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNumber => (
                                             <button
-                                                onClick={() => addToCart(product)}
+                                                key={pageNumber}
+                                                onClick={() => paginate(pageNumber)}
                                                 style={{
-                                                    ...styles.btnAddCart,
-                                                    opacity: product.stock <= 0 ? 0.6 : 1,
-                                                    cursor: product.stock <= 0 ? 'not-allowed' : 'pointer'
+                                                    ...styles.paginationBtn,
+                                                    ...(currentPage === pageNumber && styles.paginationBtnActive)
                                                 }}
-                                                disabled={product.stock <= 0}
                                             >
-                                                {product.stock > 0 ? '🛒 Ajouter' : 'Rupture'}
+                                                {pageNumber}
                                             </button>
-                                        </div>
+                                        ))}
+
+                                        <button
+                                            onClick={nextPage}
+                                            disabled={currentPage === totalPages}
+                                            style={{
+                                                ...styles.paginationArrow,
+                                                ...(currentPage === totalPages && styles.paginationArrowDisabled)
+                                            }}
+                                        >
+                                            Suivant →
+                                        </button>
                                     </div>
-                                ))}
-                            </div>
+                                )}
+                            </>
                         )}
                     </div>
                 )}
@@ -989,7 +1100,6 @@ export default function Shop() {
                                 <div style={styles.summary}>
                                     <h3 style={{ marginTop: 0, color: '#2c3e50' }}>📋 Récapitulatif</h3>
 
-                                    {/* REMPLACE LE TEXTAREA PAR CE CODE: */}
                                     <div style={{ marginBottom: '20px' }}>
                                         <label style={{
                                             display: 'block',
@@ -1118,14 +1228,14 @@ export default function Shop() {
                                         >
                                             {loading ? (
                                                 <>
-            <span style={{
-                border: '2px solid #fff',
-                borderTop: '2px solid transparent',
-                borderRadius: '50%',
-                width: '16px',
-                height: '16px',
-                animation: 'spin 1s linear infinite'
-            }}></span>
+                                                    <span style={{
+                                                        border: '2px solid #fff',
+                                                        borderTop: '2px solid transparent',
+                                                        borderRadius: '50%',
+                                                        width: '16px',
+                                                        height: '16px',
+                                                        animation: 'spin 1s linear infinite'
+                                                    }}></span>
                                                     Traitement...
                                                 </>
                                             ) : (
@@ -1161,16 +1271,20 @@ export default function Shop() {
                     from { transform: translateY(-20px); opacity: 0; }
                     to { transform: translateY(0); opacity: 1; }
                 }
-                input:focus, textarea:focus {
+                input:focus, textarea:focus, select:focus {
                     border-color: #667eea !important;
                     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
                 }
-                button:hover {
+                button:hover:not(:disabled) {
                     transform: translateY(-2px);
                     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
                 }
-                button:active {
+                button:active:not(:disabled) {
                     transform: translateY(0);
+                }
+                .pagination-btn:hover:not(:disabled) {
+                    background-color: #667eea !important;
+                    color: white !important;
                 }
             `}</style>
         </div>
