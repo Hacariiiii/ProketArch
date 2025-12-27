@@ -403,7 +403,7 @@ export default function Location() {
 
     const handleEmail = () => {
         alert('Ouverture du client mail...');
-        // En vrai projet: window.location.href = 'mailto:mouadheba1234@gmail.com';
+        // En vrai projet: window.location.href = 'mailto:mouadsalah1234@gmail.com';
     };
 
     return (
@@ -443,45 +443,11 @@ export default function Location() {
             <header style={styles.header}>
                 <div style={styles.headerContent}>
                     <div style={styles.logoSection}>
-                        <h1 style={styles.logo}>YOURCAR</h1>
+                        <h1 style={styles.logo}>YOURShop</h1>
                         <p style={styles.tagline}>Excellence Redefined</p>
                     </div>
 
-                    <nav style={styles.nav}>
-                        <button
-                            style={styles.navBtn}
-                            onClick={() => navigate('/home')}
-                            onMouseEnter={() => setHoveredBtn('home')}
-                            onMouseLeave={() => setHoveredBtn(null)}
-                        >
-                            HOME
-                        </button>
-                        <button
-                            style={styles.navBtn}
-                            onClick={() => navigate('/shop')}
-                            onMouseEnter={() => setHoveredBtn('shop')}
-                            onMouseLeave={() => setHoveredBtn(null)}
-                        >
-                            PRODUCTS
-                        </button>
-                        <button
-                            style={styles.navBtn}
-                            onClick={() => navigate('/about')}
-                            onMouseEnter={() => setHoveredBtn('about')}
-                            onMouseLeave={() => setHoveredBtn(null)}
-                        >
-                            ABOUT
-                        </button>
-                        <button style={styles.navBtnActive}>LOCATION</button>
-                        <button
-                            style={styles.navBtn}
-                            onClick={() => navigate('/shop')}
-                            onMouseEnter={() => setHoveredBtn('cart')}
-                            onMouseLeave={() => setHoveredBtn(null)}
-                        >
-                            CART
-                        </button>
-                    </nav>
+
                 </div>
             </header>
 
@@ -511,7 +477,7 @@ export default function Location() {
 
                                 <div style={styles.locationMarker}>
                                     <div style={styles.markerPin}>📍</div>
-                                    <div style={styles.markerLabel}>YOURCAR</div>
+                                    <div style={styles.markerLabel}>YOURShop</div>
                                 </div>
                             </div>
 
@@ -609,7 +575,7 @@ export default function Location() {
                                     'From city center: Take Avenue Hassan II towards downtown',
                                     'Public transport: Bus lines 12, 45, 78 stop nearby',
                                     'Parking available in the building basement',
-                                    'Look for the "YOURCAR" sign on the building facade'
+                                    'Look for the "YOURShop" sign on the building facade'
                                 ].map((item, index) => (
                                     <li key={index} style={styles.directionsListItem}>
                                         {item}
@@ -625,7 +591,7 @@ export default function Location() {
             <footer style={styles.footer}>
                 <div style={styles.footerContent}>
                     <div style={styles.footerSection}>
-                        <h3 style={styles.footerLogo}>YOURCAR</h3>
+                        <h3 style={styles.footerLogo}>YOURShop</h3>
                         <p style={styles.footerText}>
                             Visit us today and experience excellence in person.
                         </p>
@@ -669,7 +635,7 @@ export default function Location() {
 
                 <div style={styles.footerBottom}>
                     <p style={styles.footerBottomText}>
-                        © 2025 YOURCAR. All rights reserved. | Premium Experience
+                        © 2025 YOURShop. All rights reserved. | Premium Experience
                     </p>
                 </div>
             </footer>

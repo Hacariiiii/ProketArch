@@ -1020,18 +1020,23 @@ export default function Shop() {
                                     {cart.map(item => (
                                         <div key={item.productId} style={styles.cartItem}>
                                             <div style={{
-                                                fontSize: '2.5rem',
-                                                background: 'white',
                                                 width: '80px',
                                                 height: '80px',
+                                                borderRadius: '8px',
+                                                overflow: 'hidden',
+                                                boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
-                                                borderRadius: '8px',
-                                                boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+                                                background: '#f8f9fa'
                                             }}>
-                                                {item.image}
+                                                <img
+                                                    src={item.image.startsWith('http') ? item.image : `${BASE_IMAGE_URL}/${item.image}`}
+                                                    alt={item.productName}
+                                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                />
                                             </div>
+
 
                                             <div style={{ flex: 1 }}>
                                                 <h4 style={{ margin: '0 0 0.5rem 0', color: '#2c3e50' }}>

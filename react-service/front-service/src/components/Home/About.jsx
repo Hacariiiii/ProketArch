@@ -9,44 +9,18 @@ export default function About() {
             <header style={styles.header}>
                 <div style={styles.headerContent}>
                     <div style={styles.logoSection}>
-                        <h1 style={styles.logo}>YOURCAR</h1>
+                        <h1 style={styles.logo}>YOURShop</h1>
                         <p style={styles.tagline}>Excellence Redefined</p>
                     </div>
 
-                    <nav style={styles.nav}>
-                        <button
-                            style={styles.navBtn}
-                            onClick={() => navigate('/home')}
-                        >
-                            HOME
-                        </button>
-                        <button
-                            style={styles.navBtn}
-                            onClick={() => navigate('/shop')}
-                        >
-                            PRODUCTS
-                        </button>
-                        <button style={styles.navBtnActive}>ABOUT</button>
-                        <button
-                            style={styles.navBtn}
-                            onClick={() => navigate('/location')}
-                        >
-                            LOCATION
-                        </button>
-                        <button
-                            style={styles.navBtn}
-                            onClick={() => navigate('/shop')}
-                        >
-                            CART
-                        </button>
-                    </nav>
+
                 </div>
             </header>
 
             {/* HERO SECTION */}
             <section style={styles.heroSection}>
                 <div style={styles.heroContent}>
-                    <h1 style={styles.heroTitle}>About YourCar</h1>
+                    <h1 style={styles.heroTitle}>About YOURShop</h1>
                     <p style={styles.heroSubtitle}>Where Innovation Meets Excellence</p>
                     <p style={styles.heroDescription}>
                         We're redefining the premium experience with cutting-edge technology
@@ -63,7 +37,7 @@ export default function About() {
                         <div style={styles.textContent}>
                             <h2 style={styles.sectionTitle}>Our Story</h2>
                             <p style={styles.sectionText}>
-                                Founded in 2025, YourCar emerged from a simple vision: to create
+                                Founded in 2025, YourShop emerged from a simple vision: to create
                                 a platform that seamlessly blends luxury with technology. What started
                                 as a small startup has grown into a leading name in premium services.
                             </p>
@@ -164,7 +138,7 @@ export default function About() {
                     <div style={styles.ctaContent}>
                         <h2 style={styles.ctaTitle}>Ready to Experience Excellence?</h2>
                         <p style={styles.ctaText}>
-                            Join thousands of satisfied customers who trust YourCar for
+                            Join thousands of satisfied customers who trust YourShop for
                             premium products and services.
                         </p>
                         <div style={styles.ctaButtons}>
@@ -189,7 +163,7 @@ export default function About() {
             <footer style={styles.footer}>
                 <div style={styles.footerContent}>
                     <div style={styles.footerSection}>
-                        <h3 style={styles.footerLogo}>YOURCAR</h3>
+                        <h3 style={styles.footerLogo}>YOURShop</h3>
                         <p style={styles.footerText}>
                             Redefining premium experiences through innovation and excellence.
                         </p>
@@ -206,13 +180,13 @@ export default function About() {
                     <div style={styles.footerSection}>
                         <h4 style={styles.footerTitle}>Contact Us</h4>
                         <p style={styles.footerText}>📍 Casablanca, Morocco</p>
-                        <p style={styles.footerText}>📞 +212 600-000-000</p>
-                        <p style={styles.footerText}>✉️ contact@yourcar.com</p>
+                        <p style={styles.footerText}>📞 +212 612206115</p>
+                        <p style={styles.footerText}>✉️ cSHop123@yourSHop.com</p>
                     </div>
                 </div>
 
                 <div style={styles.footerBottom}>
-                    <p style={styles.footerBottomText}>© 2025 YOURCAR. All rights reserved. | Premium Experience Redefined</p>
+                    <p style={styles.footerBottomText}>© 2025 YOURShop. All rights reserved. | Premium Experience Redefined</p>
                 </div>
             </footer>
         </div>

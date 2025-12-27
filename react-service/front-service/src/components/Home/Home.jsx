@@ -121,7 +121,7 @@ export default function Home() {
             {
                 id: 'welcome-1',
                 type: 'SYSTEM',
-                title: 'Bienvenue sur YOURCAR',
+                title: 'Bienvenue sur YOURShop',
                 message: 'Profitez de nos meilleures offres sur les voitures',
                 time: 'Il y a 1 jour',
                 read: true,
@@ -290,7 +290,7 @@ export default function Home() {
             <header style={styles.header}>
                 <div style={styles.headerContent}>
                     <div style={styles.logoSection}>
-                        <h1 style={styles.logo}>YOURCAR</h1>
+                        <h1 style={styles.logo}>YOURShop</h1>
                         <p style={styles.tagline}>La simplicité est la forme ultime de l'intelligence</p>
                     </div>
 
@@ -838,7 +838,7 @@ export default function Home() {
 
             {/* FOOTER */}
             <footer style={styles.footer}>
-                <p>© 2025 YOURCAR. Tous droits réservés.</p>
+                <p>© 2025 YOURSHop. Tous droits réservés.</p>
             </footer>
         </div>
     );

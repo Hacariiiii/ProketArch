@@ -131,7 +131,7 @@ export default function Profile() {
             <header style={styles.header}>
                 <div style={styles.headerContent}>
                     <div style={styles.logoSection}>
-                        <h1 style={styles.logo}>YOURCAR</h1>
+                        <h1 style={styles.logo}>YOURSHop</h1>
                         <p style={styles.tagline}>La simplicité est la forme ultime de l'intelligence</p>
                     </div>
 
@@ -536,7 +536,7 @@ export default function Profile() {
 
             {/* FOOTER */}
             <footer style={styles.footer}>
-                <p>© 2025 YOURCAR. Tous droits réservés.</p>
+                <p>© 2025 YOURShop. Tous droits réservés.</p>
             </footer>
         </div>
     );
